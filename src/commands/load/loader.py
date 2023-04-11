@@ -21,8 +21,8 @@ class Commands:
     def add_command(self, command):
         try:
             commands_directory = './src/commands'
-            module_name = os.path.splitext(command)[0] # Remove .py extension from filename
-            package_name = 'commands' # Assuming 'commands' is the name of the package that contains the command modules
+            module_name = os.path.splitext(command)[0]
+            package_name = 'commands'
             self.commands[command] = importlib.import_module(f"{package_name}.{module_name}", commands_directory)
         except Exception as e:
             print(e)
