@@ -94,7 +94,7 @@ class DiscordBot {
                 .then(collected => {
                     resolve(collected);
                 })
-                .catch(collected => {
+                .catch(() => {
                     reject(`No input matching ${msg} was found within the past 60 seconds`);
                 });
         });
@@ -118,7 +118,7 @@ class DiscordBot {
                     resolve(collected);
                 })
                 .catch(collected => {
-                    reject(`No input matching ${msg} was found within the past 60 seconds`);
+                    reject(`No input with user matching ${mmbr.user.tag} was found within the past 60 seconds`);
                 });
         });
     }
