@@ -2,32 +2,37 @@ import os
 import discord
 import json
 from lib import util
+from commands.load import loader
 from discord.ext import commands
 
-# Get the absolute path of the auth.json file
 auth_file = os.path.join(os.path.dirname(__file__), 'auth.json')
+cmds = {}
 
-# Open the auth.json file and load the token
 with open(auth_file, 'r') as f:
     data = json.load(f)
     token = data.get('token')
 
-# Create intents object
 intents = discord.Intents.default()
 
-# Create bot instance with intents
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Define a command
+while not loader.CommandObject.loaded:
+    pass
+
+for index, (command,module) in enumerate(loader.CommandObject.commands):
+    @bot.command(name=command)
+    async def run(ctx):
+        module.run(ctx)
+    cmds[command] = run
+
 @bot.command(name='hello')
 async def hello(ctx):
     util.DEFAULT_COMMAND_ACTION(ctx)
     
-@bot.command(name='coup')
-async def coup(ctx):
+@bot.command(name='test')
+async def test(ctx):
     util.DEFAULT_COMMAND_ACTION(ctx)
 
-# Run the bot
 if token:
     bot.run(token)
 else:
