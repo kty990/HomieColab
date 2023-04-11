@@ -109,7 +109,7 @@ class DiscordBot {
     async WaitForInputFromMember(mmbr = null) {
         assert(!mmbr instanceof Discord.GuildMember, "Can't wait for an empty member");
         return new Promise((resolve, reject) => {
-            const filter = m => m.member.toLowerCase() == msg.toLowerCase();
+            const filter = m => m.member == mmbr;
             // Errors: ['time'] treats ending because of the time limit as an error
             channel.awaitMessages({ filter, max: 1, time: 60_000, errors: ['time'] })
                 .then(collected => {
@@ -121,12 +121,26 @@ class DiscordBot {
         });
     }
 
-    // GetEmoji()
+    // GetEmoji(ID)
+    async GetEmoji(id = null) {
+        assert(id !== null, "Can't get an emoji with a <<null>> id.");
 
-    // WaitForReaction(MESSAGE)
+    }
+
+    // WaitForReaction(id)
+    async WaitForReaction(id = null) {
+        assert(id !== null, "Can't wait for a reaction with a <<null>> id.");
+
+    }
 
     // WaitForReactionFromMember(MESSAGE,MEMBER)
+    async WaitForReactionFromMember(msg = "", mmbr = null) {
+        assert((msg !== "" || mmbr !== null), "WaitForReaction Error: The message and/or member argument was missing.");
+    }
 
     // WaitForSlashCommand(COMMAND_NAME)
+    async WaitForReactionFromMember(cmd = "help") {
+        //
+    }
 
 }
