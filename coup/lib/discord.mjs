@@ -77,7 +77,6 @@ class DiscordBot {
         }
     }
 
-    // WaitForInput(MESSAGE) << Waits for message to be sent
     /**
      * 
      * @param {*} msg 
@@ -100,10 +99,9 @@ class DiscordBot {
         });
     }
 
-    // WaitForInputFromMember(MEMBER)
     /**
      * 
-     * @param {*} msg 
+     * @param {*} mmbr 
      * @returns Promise
      * 
      * 60 second timelimit, rejects if time expires
@@ -117,7 +115,7 @@ class DiscordBot {
                 .then(collected => {
                     resolve(collected);
                 })
-                .catch(collected => {
+                .catch(() => {
                     reject(`No input with user matching ${mmbr.user.tag} was found within the past 60 seconds`);
                 });
         });
