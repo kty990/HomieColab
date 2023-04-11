@@ -78,14 +78,50 @@ class DiscordBot {
     }
 
     // WaitForInput(MESSAGE) << Waits for message to be sent
+    /**
+     * 
+     * @param {*} msg 
+     * @returns Promise
+     * 
+     * 60 second timelimit, rejects if time expires
+     */
     async WaitForInput(msg = null) {
         assert(msg == null, "Can't wait for an empty message");
         return new Promise((resolve, reject) => {
-            resolve();
+            const filter = m => m.content.toLowerCase() == msg.toLowerCase();
+            // Errors: ['time'] treats ending because of the time limit as an error
+            channel.awaitMessages({ filter, max: 1, time: 60_000, errors: ['time'] })
+                .then(collected => {
+                    resolve(collected);
+                })
+                .catch(collected => {
+                    reject(`No input matching ${msg} was found within the past 60 seconds`);
+                });
         });
     }
 
     // WaitForInputFromMember(MEMBER)
+    /**
+     * 
+     * @param {*} msg 
+     * @returns Promise
+     * 
+     * 60 second timelimit, rejects if time expires
+     */
+    async WaitForInputFromMember(mmbr = null) {
+        assert(!mmbr instanceof Discord.GuildMember, "Can't wait for an empty member");
+        return new Promise((resolve, reject) => {
+            const filter = m => m.member.toLowerCase() == msg.toLowerCase();
+            // Errors: ['time'] treats ending because of the time limit as an error
+            channel.awaitMessages({ filter, max: 1, time: 60_000, errors: ['time'] })
+                .then(collected => {
+                    resolve(collected);
+                })
+                .catch(collected => {
+                    reject(`No input matching ${msg} was found within the past 60 seconds`);
+                });
+        });
+    }
 
     // GetEmoji()
 
