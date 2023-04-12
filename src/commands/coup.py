@@ -4,20 +4,110 @@ async def run(ctx):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     print(ctx)
     await ctx.send("this is placeholder text for the %s command" % (str(current_file).replace(".py","")))
-    #step 1 initialize game
+    
+    
 
-    #step 2 get the number of players in the game by reacting to whatever gets spit out once a game is initialized 
 
-    #step 3 star the game with another reaction on the thing that gets spit out
 
-    #step 4 DM's all players that reacted what cards they have and probably says a little description of what they can do
 
-    #step 5 randomly picks player order
 
-    #step 6 starts game, spits out what the player can do with reactions
 
-    #step 7 there is an objection thingy I suppose after the players action
 
-    #step 8 challenge the objection or accept the objection
 
-    #repeat until winner?
+
+
+
+
+
+
+
+
+
+
+
+#EXAMPLE CODE FOR A GAME OF COUP
+"""
+
+
+
+import random
+
+# define the characters and their abilities
+characters = {
+    'Duke': 'Tax (Take 3 coins from the treasury)',
+    'Assassin': 'Assassinate (Pay 3 coins to eliminate a player\'s influence)',
+    'Captain': 'Steal (Take 2 coins from another player)',
+    'Ambassador': 'Exchange (Trade in 2 cards from the deck)',
+    'Contessa': 'Block (Block an assassination attempt)',
+}
+
+# initialize the game variables
+players = ['Player 1', 'Player 2', 'Player 3']
+influence = {player: 2 for player in players}
+coins = {player: 2 for player in players}
+deck = list(characters.keys()) * 3
+random.shuffle(deck)
+
+# define the functions for the character actions
+def tax(player):
+    coins[player] += 3
+
+def assassinate(player, target):
+    if coins[player] >= 3:
+        coins[player] -= 3
+        eliminate(target)
+
+def steal(player, target):
+    if coins[target] >= 2:
+        coins[player] += 2
+        coins[target] -= 2
+
+def exchange(player):
+    cards = draw_cards(2)
+    # let the player choose which cards to keep
+    # and which to return to the deck
+
+def block(player):
+    pass # blocking an assassination attempt is automatic
+
+# define the functions for drawing and eliminating cards
+def draw_card():
+    if len(deck) == 0:
+        shuffle_deck()
+    return deck.pop()
+
+def draw_cards(num):
+    return [draw_card() for _ in range(num)]
+
+def eliminate(player):
+    influence[player] -= 1
+    if influence[player] == 0:
+        players.remove(player)
+
+# define the main game loop
+current_player = 0
+while len(players) > 1:
+    player = players[current_player]
+    action = input(f"{player}, choose an action: ")
+    if action == 'Tax':
+        tax(player)
+    elif action == 'Assassinate':
+        target = input(f"{player}, choose a target: ")
+        assassinate(player, target)
+    # similar elif statements for the other actions
+    else:
+        print("Invalid action. Try again.")
+        continue
+    current_player = (current_player + 1) % len(players)
+
+# determine the winner
+if len(players) == 1:
+    print(f"{players[0]} wins!")
+else:
+    print("It's a tie!")
+
+
+    
+    
+    
+    """
