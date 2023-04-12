@@ -1,9 +1,8 @@
 import os
-current_file = os.path.basename(__file__)
-async def run(ctx):
+
+async def run(ctx, *args):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
-    print(ctx)
-    await ctx.send("this is placeholder text for the %s command" % (str(current_file).replace(".py","")))
+    pass
     
     
 

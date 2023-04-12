@@ -26,12 +26,15 @@ while not loader.CommandObject.loaded:
     ii += 1
 
 for module_name, module in loader.CommandObject.commands.items():
-    command_func = Command(module.run, name=f"-{module_name}")
-    bot.add_command(command_func)
+    async def command_func(ctx, *args, module=module, module_name=module_name):
+        print(f'{module_name} used!')
+        await module.run(ctx, *args)
+    bot.add_command(Command(command_func, name=f"-{module_name}"))
     cmds[module_name] = command_func
 
 @bot.event
 async def on_command_error(ctx, error):
+    print(error)
     if isinstance(error, commands.CommandNotFound):
         return  # ignore command not found errors
 
