@@ -96,8 +96,10 @@ class Music:
             return
 
         vc.play(discord.FFmpegPCMAudio(audio_url))
+        ctx.playing = True
         while vc.is_playing():
             await asyncio.sleep(1)
+        ctx.playing = False
         if (not vc.is_paused()):
             await self.next(ctx)
 
@@ -107,19 +109,19 @@ class Music:
             next_url = self.queue.dequeue()
             self.play(ctx, next_url)
 
-
-queues = {}
-
 async def run(ctx, *args):
+    if not ctx.queues:
+        ctx.playing = False
+        ctx.queues = {}
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
-    if not ctx.guild.id in queues:
-        queues[ctx.guild.id] = Music(ctx)
+    if not ctx.guild.id in ctx.queues:
+        ctx.queues[ctx.guild.id] = Music(ctx)
     validUrls = []
     for arg in args:
         if (validURL(arg)):
             validUrls.append(arg)
     
     for url in validUrls:
-        await queues[ctx.guild.id].play(ctx,url)
+        await ctx.queues[ctx.guild.id].play(ctx,url)
     
     
