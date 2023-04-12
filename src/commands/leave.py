@@ -6,7 +6,8 @@ async def run(ctx, *args):
         return
     voice_channel = ctx.author.voice.channel
     if ctx.voice_client is None:
-        await voice_channel.connect()
+        await ctx.send("You are not connected to a voice channel")
+        return
     else:
-        #mod this to prevent moving to another voice channel
-        await ctx.voice_client.move_to(voice_channel)
+        await ctx.voice_client.disconnect()
+        await ctx.send("Disconnected.")

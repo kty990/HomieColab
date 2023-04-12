@@ -24,7 +24,7 @@ async def run(ctx, *args):
 
 
 
-#EXAMPLE CODE FOR A GAME OF COUP
+#EXAMPLE GAME LOOP FOR A GAME OF COUP
 """
 
 
