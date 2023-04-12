@@ -51,15 +51,43 @@ class Queue:
      
 
 class Music:
-    def __init__(self):
+    """
+    ctx - Context
+        : Required for initialization
+    """
+    def __init__(self, ctx):
         self.queue = Queue()
+        self.bot = ctx.bot
+
+        @self.bot.event
+        async def on_voice_state_update(member, before, after):
+            if member == self.bot.user and not after.channel:
+                try:
+                    ctx.voice_client.pause()
+                    print("Paused")
+                except Exception:
+                    pass
+            else:
+                try:
+                    if (ctx.voice_client.is_paused()):
+                        ctx.voice_client.resume()
+                        print("resuming...")
+                except Exception:
+                    pass
+
 
     async def play(self,ctx,url):
+        guild = ctx.guild
+        vc = get(ctx.bot.voice_clients, guild=guild)
         voice_channel = ctx.author.voice.channel
         if voice_channel is None:
             await ctx.send("You need to be in a voice channel to use this command.")
             return
-
+        if vc is None:
+            try:
+                vc = await voice_channel.connect()
+            except Exception:
+                raise Exception("Unable to connect to voice channel. > PLAY")
         try:
             video = pytube.YouTube(url)
             audio_url = video.streams.filter(only_audio=True).first().url
@@ -67,16 +95,11 @@ class Music:
             await ctx.send("Unable to get audio URL from the given URL.")
             return
 
-        try:
-            vc = await voice_channel.connect()
-        except:
-            await ctx.send("Unable to connect to voice channel.")
-            return
-
         vc.play(discord.FFmpegPCMAudio(audio_url))
         while vc.is_playing():
             await asyncio.sleep(1)
-        self.next(ctx)
+        if (not vc.is_paused()):
+            await self.next(ctx)
 
     async def next(self, ctx):
         # If there's a song in the queue, play it next
@@ -90,7 +113,7 @@ queues = {}
 async def run(ctx, *args):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     if not ctx.guild.id in queues:
-        queues[ctx.guild.id] = Music()
+        queues[ctx.guild.id] = Music(ctx)
     validUrls = []
     for arg in args:
         if (validURL(arg)):

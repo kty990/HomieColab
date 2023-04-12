@@ -9,6 +9,8 @@ from discord.ext import commands
 auth_file = os.path.join(os.path.dirname(__file__), 'auth.json')
 cmds = {}
 
+PREFIX = "-"
+
 with open(auth_file, 'r') as f:
     data = json.load(f)
     token = data.get('token')
@@ -29,7 +31,7 @@ for module_name, module in loader.CommandObject.commands.items():
     async def command_func(ctx, *args, module=module, module_name=module_name):
         print(f'{module_name} used!')
         await module.run(ctx, *args)
-    bot.add_command(Command(command_func, name=f"-{module_name}"))
+    bot.add_command(Command(command_func, name=f"{PREFIX}{module_name}"))
     cmds[module_name] = command_func
 
 @bot.event
@@ -43,7 +45,6 @@ async def on_command_error(ctx, error):
 
     # send a message to the user
     await ctx.send("An error occurred while processing your command. Please try again later.")
-
 
 if token:
     bot.run(token)

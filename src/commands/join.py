@@ -1,7 +1,6 @@
 import os
 
 async def run(ctx, *args):
-    print("JOIN USED CONFIRM")
     if ctx.author.voice is None:
         await ctx.send("You are not connected to a voice channel")
         return
