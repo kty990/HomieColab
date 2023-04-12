@@ -18,12 +18,13 @@ class Commands:
             result = result + f"{keys[x]}:{values[x]}\n"
         return result + ">>"
 
-    def add_command(self, command):
+    def add_command(self, module_name):
         try:
             commands_directory = './src/commands'
-            module_name = os.path.splitext(command)[0]
             package_name = 'commands'
-            self.commands[command] = importlib.import_module(f"{package_name}.{module_name}", commands_directory)
+            module_fullname = f"{package_name}.{module_name}"
+            module = importlib.import_module(module_fullname, commands_directory)
+            self.commands[module_name] = module
         except Exception as e:
             print(e)
 
@@ -40,3 +41,4 @@ for file in file_list:
             CommandObject.add_command(str(file).replace(".py",""))
 
 CommandObject.loaded = True
+print("Loaded...")

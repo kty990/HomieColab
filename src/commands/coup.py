@@ -1,8 +1,9 @@
 import os
 current_file = os.path.basename(__file__)
-def run(ctx):
+async def run(ctx):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
-    ctx.send("this is placeholder text for the %s command" % (str(current_file).replace(".py","")))
+    print(ctx)
+    await ctx.send("this is placeholder text for the %s command" % (str(current_file).replace(".py","")))
     #step 1 initialize game
 
     #step 2 get the number of players in the game by reacting to whatever gets spit out once a game is initialized 
