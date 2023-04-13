@@ -1,5 +1,7 @@
 import os
 
+description = """Makes the bot disconnect from its current voice channel."""
+
 async def run(ctx, *args):
     if ctx.author.voice is None:
         await ctx.send("You are not connected to a voice channel")

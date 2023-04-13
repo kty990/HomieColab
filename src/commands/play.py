@@ -5,6 +5,8 @@ import pytube
 from discord.utils import get
 import discord
 
+description = """Attempts to play soundtracks given by URL. WIP : Will include play by query"""
+
 current_file = os.path.basename(__file__)
 def validURL(url):
     url_regex = re.compile(
@@ -113,7 +115,6 @@ async def run(ctx, *args):
     if not ctx.queues:
         ctx.playing = False
         ctx.queues = {}
-    ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     if not ctx.guild.id in ctx.queues:
         ctx.queues[ctx.guild.id] = Music(ctx)
     validUrls = []

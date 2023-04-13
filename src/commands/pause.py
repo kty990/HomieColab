@@ -1,5 +1,7 @@
 from discord.utils import get
 
+description = """Pauses the track if one is playing."""
+
 async def run(ctx, *args):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     if not ctx.playing: 

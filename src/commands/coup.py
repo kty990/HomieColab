@@ -1,5 +1,7 @@
 import os
 
+description = """WIP."""
+
 async def run(ctx, *args):
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     pass

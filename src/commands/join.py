@@ -1,5 +1,7 @@
 import os
 
+description = """Makes the bot join the channel the user is in."""
+
 async def run(ctx, *args):
     if ctx.author.voice is None:
         await ctx.send("You are not connected to a voice channel")

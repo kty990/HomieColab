@@ -50,3 +50,4 @@ if token:
     bot.run(token)
 else:
     print("Error: Token not found in .auth.json")
+
