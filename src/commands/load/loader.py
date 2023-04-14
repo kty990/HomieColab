@@ -18,9 +18,9 @@ class Commands:
             result = result + f"{keys[x]}:{values[x]}\n"
         return result + ">>"
 
-    def add_command(self, module_name):
+    def add_command(self, abs_path, module_name):
         try:
-            commands_directory = './HomiesColab/src/commands'
+            commands_directory = abs_path
             package_name = 'commands'
             module_fullname = f"{package_name}.{module_name}"
             module = importlib.import_module(module_fullname, commands_directory)
@@ -52,7 +52,7 @@ for file in file_list:
             continue
         else:
             # print(f"Adding {str(file)}...")
-            CommandObject.add_command(str(file).replace(".py",""))
+            CommandObject.add_command(absolute_path, str(file).replace(".py",""))
 
 CommandObject.loaded = True
 print("Loaded...")
