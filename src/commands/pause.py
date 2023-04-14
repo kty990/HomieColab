@@ -14,7 +14,7 @@ async def run(ctx, *args):
     # music.musics[ctx.guild.id]['music'] = music.Music(ctx)
     # music.musics[ctx.guild.id]['playing'] = False
 
-    assert(ctx.guild.id in music.musics,"An unknown error occured.")
+    assert ctx.guild.id in music.musics, "An unknown error occurred."
     
 
     if not music.musics[ctx.guild.id]['playing']: 
