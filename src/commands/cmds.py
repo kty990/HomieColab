@@ -23,7 +23,7 @@ class Commands:
         return result + ">>"
 
     def add_command(self, module_name):
-        print(f"Attempting to add {module_name}")
+        # print(f"Attempting to add {module_name}")
         try:
             if module_name == 'cmds':
                 self.commands['cmds'] = "PLACEHOLDERVALUE"
@@ -60,7 +60,7 @@ else:
     #On other
     absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
 file_list = os.listdir(absolute_path)
-print(f"File list: {file_list}")
+# print(f"File list: {file_list}")
 
 for file in file_list:
     if os.path.isfile(os.path.join(absolute_path, file)):
@@ -84,14 +84,14 @@ async def run(ctx, *args):
         return
     output = ""
     for (command,module) in CommandObject.commands.items():
-        print(type(command), type(module))
+        # print(type(command), type(module))
         if command == "cmds":
             output += f"{f_string % ('cmds',description or '<< description unavailable >>')}"
         else:
             output += f"{f_string % (command,module.description or '<< description unavailable >>')}"
     e = discord.Embed(title="Commands", description=output, color=0x00000)
     e.set_footer(text=f"{ctx.bot.user}")
-    print(output)
+    # print(output)
     avatar_url = ""
     try:
         avatar_url = f"{str(ctx.author.avatar.url)}"
