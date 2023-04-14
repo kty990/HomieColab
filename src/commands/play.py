@@ -4,6 +4,11 @@ import asyncio
 import pytube
 from discord.utils import get
 import discord
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from src.lib import util
 
 description = """Attempts to play soundtracks given by URL. WIP : Will include play by query"""
 
@@ -79,6 +84,7 @@ class Music:
 
 
     async def play(self,ctx,url):
+        URL = await util.GenerateURL(url)
         guild = ctx.guild
         vc = get(ctx.bot.voice_clients, guild=guild)
         voice_channel = ctx.author.voice.channel
@@ -91,7 +97,7 @@ class Music:
             except Exception:
                 raise Exception("Unable to connect to voice channel. > PLAY")
         try:
-            video = pytube.YouTube(url)
+            video = pytube.YouTube(URL)
             audio_url = video.streams.filter(only_audio=True).first().url
         except:
             await ctx.send("Unable to get audio URL from the given URL.")
