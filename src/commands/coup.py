@@ -10,20 +10,42 @@ TODO:
 
 description = """WIP."""
 
+class Player:
+    def __init__(self, user):
+        self.user = user
+        self.cards = []
+
 class Deck:
     def __init__(self):
         self.cards = []
+        self.NUM_OF_CARD_IN_DECK = 3 #Number of each character in the deck
     
-    def shuffle():
-        pass
+    def shuffle(self):
+        tmp = []
+        for x in self.cards:
+            tmp.append(self.cards.pop(random.randint(0,len(self.cards)-1)))
+        self.cards = tmp
 
-    def draw_cards(num):
-        pass
+    def draw_cards(self, num: int = 0):
+        cards = []
+        for x in range(num):
+            cards.append(self.cards.pop())
+        return cards
 
-    def draw_card():
-        pass
+    def draw_card(self):
+        return self.cards.pop()
+    
+    def refresh(self, characters: dict):
+        #Populate deck
+        for x in list(characters.keys()) * self.NUM_OF_CARD_IN_DECK:
+            pass
 
+"""
+Creates a 'join prompt' in the server's channel that this was sent from.
+Requires reaction to join, unreact to un-join
+"""
 async def GetPlayers():
+    #Requires Player object
     pass
 
 async def run(ctx, *args):
@@ -36,8 +58,8 @@ async def run(ctx, *args):
         'Contessa': 'Block (Block an assassination attempt)',
     }
 
-    NUM_OF_CARD_IN_DECK = 3
     d = Deck()
+    d.refresh(characters=characters)
 
     #Get players
     players = await GetPlayers()
@@ -48,9 +70,7 @@ async def run(ctx, *args):
     #Set influence
     influence = {player: 2 for player in players}
     
-    #Populate deck
-    for x in list(characters.keys()) * NUM_OF_CARD_IN_DECK:
-        pass
+    
 
     #Shuffle the deck
     d.shuffle()
@@ -81,11 +101,15 @@ async def run(ctx, *args):
     def block(player):
         pass # blocking an assassination attempt is automatic
 
+    async def TakeTurn(player):
+        pass
+
     # define the main game loop
     current_player = 0
     while len(players) > 1:
         player = players[current_player]
-        # GAME LOGIC HERE
+        result = await TakeTurn(player)
+        await ctx.send(f"{player} chose to {result}")
         current_player = (current_player + 1) % len(players)
 
     # determine the winner
