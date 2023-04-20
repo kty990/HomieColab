@@ -7,7 +7,11 @@ from datetime import datetime as date
 # Add parent directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-description = """What do you need help with?"""
+os.chdir('c:/Users/maste/Desktop/coup/HomieColab')
+
+print(sys.path)
+
+description = """Commands for you to use can be found with this command."""
 
 class Commands: 
     def __init__(self):
@@ -39,12 +43,13 @@ class Commands:
             else:
                 #On other
                 absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
+            print(absolute_path)
             package_name = 'commands'
             module_fullname = f"{package_name}.{module_name}"
             module = importlib.import_module(module_fullname, absolute_path)
             self.commands[module_name] = module
         except Exception as e:
-            print(e)
+            print(f"Exception occured on add_command @ cmds.py:\n{e}")
 
 CommandObject = Commands()
 
@@ -60,7 +65,7 @@ else:
     #On other
     absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
 file_list = os.listdir(absolute_path)
-# print(f"File list: {file_list}")
+print(f"File list: {file_list}")
 
 for file in file_list:
     if os.path.isfile(os.path.join(absolute_path, file)):
@@ -92,12 +97,7 @@ async def run(ctx, *args):
     e = discord.Embed(title="Commands", description=output, color=0x00000)
     e.set_footer(text=f"{ctx.bot.user}")
     # print(output)
-    avatar_url = ""
-    try:
-        avatar_url = f"{str(ctx.author.avatar.url)}"
-    except Exception as e:
-        print(e)
-        pass
+    avatar_url = f"{str(ctx.author.avatar.url)}"
 
     e.set_image(url=avatar_url)
     e.set_author(name=f"{ctx.author}", icon_url=f"{avatar_url}")

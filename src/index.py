@@ -1,7 +1,7 @@
 import os
 import discord
 import json
-from lib import util
+# from lib import util
 from commands.load import loader
 from discord.ext.commands import Command
 from discord.ext import commands

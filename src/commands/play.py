@@ -1,9 +1,6 @@
 import os
 import re
-import asyncio
-import pytube
 from discord.utils import get
-import discord
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
