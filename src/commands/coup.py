@@ -38,7 +38,7 @@ class Deck:
     def refresh(self, characters: dict):
         #Populate deck
         for x in list(characters.keys()) * self.NUM_OF_CARD_IN_DECK:
-            pass
+            self.cards.append(x)
 
 """
 Creates a 'join prompt' in the server's channel that this was sent from.
