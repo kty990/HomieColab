@@ -118,11 +118,29 @@ class Player:
 
         message = await self.user.send(f"What do you choose to do?")
         response = await ctx.bot.wait_for('message', check=check, timeout=None)
+        target = None
         i = 1
         while response.content.lower() not in self.valid_actions.keys():
             i += 1
             await response.delete()
             await message.edit(f"Attempt #{i}\nThat is not a valid action. Valid actions include any of the bolded actions:\n{self.ComputeActions()}")
+        if response.content.lower() in []:
+            players_prompt = '\n- '.join([str(x)[:-5] for x in player_list])
+            await message.edit(f"Who do you to want to {response.content.lower()}?\nValid options include: \n- {players_prompt}")
+            target = await ctx.bot.wait_for('message', check=check, timeout=None)
+        
+        i = 1
+        while not target.content.lower() in [str(x).lower()[:-5] for x in player_list]: #list comp for player user tags
+            i += 1
+            players_prompt = '\n- '.join([str(x)[:-5] for x in player_list])
+            await message.edit(f"Attempt #{i}\nWho do you to want to {response.content.lower()}?\nValid options include: \n- {players_prompt}")
+            target = await ctx.bot.wait_for('message', check=check, timeout=None)
+        
+        for x in player_list:
+            if str(x)[:-5].lower() == target.content.lower():
+                target = x
+                break
+
         # Now check if anyone wants to challenge the action, give 10 seconds
         challenged = None
         for player in player_list:
