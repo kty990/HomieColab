@@ -140,7 +140,7 @@ async def run(ctx, *args):
     players = await GetPlayers(ctx, 6)
     print(players)
 
-    # GAME LOGIC
+    """ GAME LOGIC HERE """
     
     GAME_IN_PROGRESS = False
     START_CHECK = False
