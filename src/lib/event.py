@@ -14,3 +14,4 @@ class Event:
 
 
 USER_REACTED = Event()
+USER_UNREACTED = Event()

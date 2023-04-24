@@ -8,7 +8,7 @@ from discord.ext import commands
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from lib import event
+from src.lib import event
 
 auth_file = os.path.join(os.path.dirname(__file__), 'auth.json')
 cmds = {}
@@ -55,6 +55,10 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_reaction_add(reaction,user):
     event.USER_REACTED.fire(reaction=reaction,user=user)
+
+@bot.event
+async def on_reaction_remove(reaction,user):
+    event.USER_UNREACTED.fire(reaction=reaction,user=user)
 
 ######################### START ############################
 

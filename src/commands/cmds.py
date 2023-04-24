@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 os.chdir('c:/Users/maste/Desktop/coup/HomieColab')
 
-print(sys.path)
+# print(sys.path)
 
 description = """Commands for you to use can be found with this command."""
 
@@ -43,7 +43,7 @@ class Commands:
             else:
                 #On other
                 absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
-            print(absolute_path)
+            # print(absolute_path)
             package_name = 'commands'
             module_fullname = f"{package_name}.{module_name}"
             module = importlib.import_module(module_fullname, absolute_path)
@@ -65,7 +65,7 @@ else:
     #On other
     absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
 file_list = os.listdir(absolute_path)
-print(f"File list: {file_list}")
+# print(f"File list: {file_list}")
 
 for file in file_list:
     if os.path.isfile(os.path.join(absolute_path, file)):
@@ -76,7 +76,7 @@ for file in file_list:
 
 CommandObject.loaded = True
 
-print(CommandObject.commands)
+# print(CommandObject.commands)
 
 f_string = """**`%s`**
     • **Description:** `%s`

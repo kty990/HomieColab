@@ -44,7 +44,7 @@ else:
     #On other
     absolute_path = os.path.abspath(os.path.join(os.getcwd(), f"../{directory}"))
 
-print(absolute_path)
+# print(absolute_path)
 file_list = os.listdir(absolute_path)
 
 def main():
@@ -54,7 +54,7 @@ def main():
             if str(file).startswith("__"):
                 continue
             else:
-                print(f"Adding {str(file)}...")
+                # print(f"Adding {str(file)}...")
                 CommandObject.add_command(absolute_path, str(file).replace(".py",""))
 
     CommandObject.loaded = True

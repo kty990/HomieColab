@@ -5,7 +5,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from lib import event
+from src.lib import event
 
 """
 TODO:
@@ -14,12 +14,30 @@ TODO:
     - Complete the Deck class
 """
 
+characters = {
+    'Duke': '**Tax** (Take 3 coins from the treasury)',
+    'Assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
+    'Captain': '**Steal** (Take 2 coins from another player)',
+    'Ambassador': '**Exchange** (Trade in 2 cards from the deck)',
+    'Contessa': '**Block** (Block an assassination attempt)',
+}
+
 description = """WIP."""
 
 class Player:
     def __init__(self, user):
         self.user = user #of type discord user
         self.cards = []
+
+    def ComputeActions(self):
+        actions = ""
+        for card in self.cards:
+            r = f"{card} : {characters[card]}\n"
+            actions += r
+        return actions
+
+    def __repr__(self):
+        return str(self.user)
 
 class Deck:
     def __init__(self):
@@ -52,39 +70,50 @@ Requires reaction to join, unreact to un-join
 """
 
 GAME_IN_PROGRESS = False
+START_CHECK = False
 REACTIONS = []
 MESSAGE_ID = None
+STARTED_BY_ID = None
 
 def check(reaction, user):
-        guild = reaction.message.guild
-        client = guild.me
-        return str(reaction.emoji) == "👍" and user != client.user
+        client = reaction.message.author
+        return str(reaction.emoji) == "👍" and user.id != client.id
 
 async def GetPlayers(ctx, MAX_PLAYERS):
     #Requires Player object
-    client = ctx.bot
+    global MESSAGE_ID,START_CHECK
 
-    message = await ctx.send("React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **60** seconds left to react!")
+    MULTIPLIER = 2
+    TIME_IN_SECONDS = 10
+
+    message = await ctx.send(f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     await message.add_reaction("👍")
+    await message.add_reaction("⏯️")
     MESSAGE_ID = message.id
     # Wait for 60 seconds to allow for users to join
-    MULTIPLIER = 2
-    for x in range(60*MULTIPLIER):
+    for x in range(TIME_IN_SECONDS*MULTIPLIER):
         await asyncio.sleep(1/MULTIPLIER)
-        if len(REACTIONS) == MAX_PLAYERS:
+        if len(REACTIONS) == MAX_PLAYERS or START_CHECK:
+            START_CHECK = False
             players = []
             for value in REACTIONS:
                 players.append(Player(value['user']))
+            await message.delete()
+            MESSAGE_ID = None
             return players
         if x % MULTIPLIER == 0:
-            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{int(60-(x/MULTIPLIER))}** seconds left to react!")
+            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
 
     players = []
     for value in REACTIONS:
         players.append(Player(value['user']))
     return players
 
+def allow_start(reaction,user):
+    return str(reaction.emoji) == "⏯️" and user.id == STARTED_BY_ID
+
 def reaction_handle(reaction,user):
+    global START_CHECK
     try:
         msg = reaction.message
         if msg.id == MESSAGE_ID and check(reaction,user):
@@ -93,26 +122,38 @@ def reaction_handle(reaction,user):
                 'user':user,
                 'reaction':reaction
             })
+        elif msg.id == MESSAGE_ID and allow_start(reaction,user):
+            START_CHECK = True
         else:
             print(f"{user} REACTED WITH {str(reaction)} BUT IT DOESN'T SEEM TO BE VALID...")
-    except:
-        pass
+    except Exception as e:
+        print(e)
+
+def unreaction_handle(reaction,user):
+    try:
+        msg = reaction.message
+        if msg.id == MESSAGE_ID and check(reaction,user):
+            print(f"{user} UNREACTED")
+            for x in REACTIONS:
+                if x['user'] == user and x['reaction'] == reaction:
+                    REACTIONS.remove(x)
+                    print("REACTION REMOVED")
+                    break
+        else:
+            print(f"{user} REACTED WITH {str(reaction)} BUT IT DOESN'T SEEM TO BE VALID...")
+    except Exception as e:
+        print(e)
 
 async def run(ctx, *args):
-    global GAME_IN_PROGRESS
+    global GAME_IN_PROGRESS, STARTED_BY_ID
     if GAME_IN_PROGRESS:
         ctx.send("Sorry, a game is already in progress!")
         return
+    STARTED_BY_ID = ctx.author.id
     GAME_IN_PROGRESS = True
     event.USER_REACTED.add_handler(reaction_handle)
+    event.USER_UNREACTED.add_handler(unreaction_handle)
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
-    characters = {
-        'Duke': 'Tax (Take 3 coins from the treasury)',
-        'Assassin': 'Assassinate (Pay 3 coins to eliminate a player\'s influence)',
-        'Captain': 'Steal (Take 2 coins from another player)',
-        'Ambassador': 'Exchange (Trade in 2 cards from the deck)',
-        'Contessa': 'Block (Block an assassination attempt)',
-    }
 
     d = Deck()
     d.refresh(characters=characters)
@@ -159,6 +200,12 @@ async def run(ctx, *args):
         pass # blocking an assassination attempt is automatic
 
     async def TakeTurn(player):
+        if player.cards == []:
+            player.cards.append(d.draw_card())
+            player.cards.append(d.draw_card())
+        actions = player.ComputeActions()
+        await player.user.send(f"Here are your cards:\n{player.cards[0]}\t{player.cards[1]}\nYour available actions are:\n{actions}")
+        quit() #ONLY FOR TESTING PURPOSES
         pass
 
     # define the main game loop
@@ -171,9 +218,12 @@ async def run(ctx, *args):
 
     # determine the winner
     if len(players) == 1:
-        print(f"{players[0]} wins!")
+        await ctx.send(f"{players[0].user.mention} wins!")
     else:
-        print("It's a tie!")
+        await ctx.send("It's a tie!")
     
     GAME_IN_PROGRESS = False
+    START_CHECK = False
+    STARTED_BY_ID = None
     event.USER_REACTED.remove_handler(reaction_handle)
+    event.USER_UNREACTED.remove_handler(unreaction_handle)
