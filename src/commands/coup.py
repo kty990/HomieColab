@@ -1,5 +1,11 @@
-import os
 import random
+import asyncio
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from lib import event
 
 """
 TODO:
@@ -12,7 +18,7 @@ description = """WIP."""
 
 class Player:
     def __init__(self, user):
-        self.user = user
+        self.user = user #of type discord user
         self.cards = []
 
 class Deck:
@@ -44,11 +50,61 @@ class Deck:
 Creates a 'join prompt' in the server's channel that this was sent from.
 Requires reaction to join, unreact to un-join
 """
-async def GetPlayers():
+
+GAME_IN_PROGRESS = False
+REACTIONS = []
+MESSAGE_ID = None
+
+def check(reaction, user):
+        guild = reaction.message.guild
+        client = guild.me
+        return str(reaction.emoji) == "👍" and user != client.user
+
+async def GetPlayers(ctx, MAX_PLAYERS):
     #Requires Player object
-    pass
+    client = ctx.bot
+
+    message = await ctx.send("React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **60** seconds left to react!")
+    await message.add_reaction("👍")
+    MESSAGE_ID = message.id
+    # Wait for 60 seconds to allow for users to join
+    MULTIPLIER = 2
+    for x in range(60*MULTIPLIER):
+        await asyncio.sleep(1/MULTIPLIER)
+        if len(REACTIONS) == MAX_PLAYERS:
+            players = []
+            for value in REACTIONS:
+                players.append(Player(value['user']))
+            return players
+        if x % MULTIPLIER == 0:
+            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{int(60-(x/MULTIPLIER))}** seconds left to react!")
+
+    players = []
+    for value in REACTIONS:
+        players.append(Player(value['user']))
+    return players
+
+def reaction_handle(reaction,user):
+    try:
+        msg = reaction.message
+        if msg.id == MESSAGE_ID and check(reaction,user):
+            print(f"{user} REACTED")
+            REACTIONS.append({
+                'user':user,
+                'reaction':reaction
+            })
+        else:
+            print(f"{user} REACTED WITH {str(reaction)} BUT IT DOESN'T SEEM TO BE VALID...")
+    except:
+        pass
 
 async def run(ctx, *args):
+    global GAME_IN_PROGRESS
+    if GAME_IN_PROGRESS:
+        ctx.send("Sorry, a game is already in progress!")
+        return
+    GAME_IN_PROGRESS = True
+    event.USER_REACTED.add_handler(reaction_handle)
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
     characters = {
         'Duke': 'Tax (Take 3 coins from the treasury)',
@@ -62,7 +118,8 @@ async def run(ctx, *args):
     d.refresh(characters=characters)
 
     #Get players
-    players = await GetPlayers()
+    players = await GetPlayers(ctx, 6)
+    print(players)
 
     #Set coins
     coins = {player: 2 for player in players} #start with 2 coins
@@ -117,3 +174,6 @@ async def run(ctx, *args):
         print(f"{players[0]} wins!")
     else:
         print("It's a tie!")
+    
+    GAME_IN_PROGRESS = False
+    event.USER_REACTED.remove_handler(reaction_handle)

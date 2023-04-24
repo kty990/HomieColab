@@ -1,8 +1,9 @@
 import discord
-import util
 from discord.utils import get
 import asyncio
 import pytube
+
+from lib import util
 
 musics = {}
 

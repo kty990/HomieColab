@@ -21,14 +21,14 @@ class Commands:
         return result + ">>"
 
     def add_command(self, abs_path, module_name):
-        try:
+        # try:
             commands_directory = abs_path
             package_name = 'commands'
             module_fullname = f"{package_name}.{module_name}"
             module = importlib.import_module(module_fullname, commands_directory)
             self.commands[module_name] = module
-        except Exception as e:
-            print(f"Exception occured on add_command @ loader.py:\n{e}")
+        # except Exception as e:
+            # print(f"Exception occured on add_command @ loader.py:\n{e}")
 
 CommandObject = Commands()
 

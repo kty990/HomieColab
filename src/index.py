@@ -1,10 +1,14 @@
 import os
+import sys
 import discord
 import json
-# from lib import util
 from commands.load import loader
 from discord.ext.commands import Command
 from discord.ext import commands
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from lib import event
 
 auth_file = os.path.join(os.path.dirname(__file__), 'auth.json')
 cmds = {}
@@ -34,6 +38,8 @@ for module_name, module in loader.CommandObject.commands.items():
     bot.add_command(Command(command_func, name=f"{PREFIX}{module_name}"))
     cmds[module_name] = command_func
 
+######################### EVENTS ############################
+
 @bot.event
 async def on_command_error(ctx, error):
     print(error)
@@ -45,6 +51,12 @@ async def on_command_error(ctx, error):
 
     # send a message to the user
     await ctx.send("An error occurred while processing your command. Please try again later.")
+
+@bot.event
+async def on_reaction_add(reaction,user):
+    event.USER_REACTED.fire(reaction=reaction,user=user)
+
+######################### START ############################
 
 if token:
     bot.run(token)
