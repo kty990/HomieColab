@@ -84,9 +84,9 @@ async def GetPlayers(ctx, MAX_PLAYERS):
     global MESSAGE_ID,START_CHECK
 
     MULTIPLIER = 2
-    TIME_IN_SECONDS = 10
+    TIME_IN_SECONDS = 60
 
-    message = await ctx.send(f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
+    message = await ctx.send(f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     await message.add_reaction("👍")
     await message.add_reaction("⏯️")
     MESSAGE_ID = message.id
@@ -145,7 +145,7 @@ def unreaction_handle(reaction,user):
         print(e)
 
 async def run(ctx, *args):
-    global GAME_IN_PROGRESS, STARTED_BY_ID
+    global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK
     if GAME_IN_PROGRESS:
         ctx.send("Sorry, a game is already in progress!")
         return
