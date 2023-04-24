@@ -2,18 +2,16 @@ import random
 import asyncio
 import sys
 import os
-from discord import DMChannel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.lib import event
-from src.lib.word_aliases import yes
 
 """
 TODO:
-    - Complete GetPlayers() function | X
-    - Complete game logic loop       |
-    - Complete the Deck class        |
+    - Complete GetPlayers() function
+    - Complete game logic loop
+    - Complete the Deck class
 """
 
 """
@@ -23,14 +21,14 @@ ACCEPTED ACTIONS:
 - Steal
 - Exchange
 - Block
-- Take 1 coins (aka. Income)
-- Take 2 coins (aka. Foreign Aid)
+- Take 1 coins (aka. _____)
+- Take 2 coins (aka. _____)
 - coup
 
 ACCEPTED COUNTER-ACTIONS:
 - Block assassination (Contessa)
 - Block steal (captain/ambassador)
-- Block foreign aid (Duke)
+- Block taking 2 coins (Duke)
 """
 
 characters = {
@@ -48,57 +46,6 @@ class Player:
     def __init__(self, user):
         self.user = user #of type discord user
         self.cards = []
-        self.influence = 2
-        self.coins = 2
-        self.valid_actions = {
-            'tax':self.tax,
-            'assassinate':self.assassinate,
-            'steal':self.steal,
-            'exchange':self.exchange,
-            'income':self.income,
-            'foreign aid':self.foreign_aid,
-            'coup':self.coup,
-        }
-        self.valid_counters = {
-            'assassination':['contessa'],
-            'steal':['captain','ambassador'],
-            'foreign aid':['duke']
-        }
-
-    def coup(self):
-        # Cannot be challenged
-        pass
-
-    def foreign_aid(self):
-        # Can be blocked
-        pass
-
-    def income(self):
-        # Cannot be challenged
-        pass
-
-    def tax(self, player):
-        # Can be challenged
-        pass
-
-    def eliminate(self, player):
-        # Eliminate 1 influence
-        pass
-
-    def assassinate(self, player):
-        # Can be blocked
-        pass
-
-    def steal(self, player):
-        # Can be blocked
-        pass
-
-    def exchange(player, deck):
-        # Can be challenged
-
-        cards = deck.draw_cards(2)
-        # let the player choose which cards to keep
-        # and which to return to the deck
 
     def ComputeActions(self):
         actions = ""
@@ -109,48 +56,12 @@ class Player:
             if not key in self.cards:
                 r = f"\t{key} : {value} (⚠️)\n"
                 actions += r
-        actions += f"**Income** : Take 1 coin\n**Foreign Aid** : Take 2 coins"
         return actions
     
-    async def MakeAction(self, ctx, player_list):
-        def check(message):
-            return isinstance(message.channel, DMChannel) and message.author.id == self.user.id
-
-        message = await self.user.send(f"What do you choose to do?")
-        response = await ctx.bot.wait_for('message', check=check, timeout=None)
-        i = 1
-        while response.content.lower() not in self.valid_actions.keys():
-            i += 1
-            await response.delete()
-            await message.edit(f"Attempt #{i}\nThat is not a valid action. Valid actions include any of the bolded actions:\n{self.ComputeActions()}")
-        # Now check if anyone wants to challenge the action, give 10 seconds
-        challenged = False
-        for player in player_list:
-            if player.user.id != self.user.id:
-                def check2(user):
-                    def inner(message):
-                        return message.author.id == user.id and isinstance(message.channel, DMChannel)
-                    return inner 
-                message = await player.user.send(f"{str(self.user)} chose to {response.lower()}, do you wish to challenge?")
-                try:
-                    response = await ctx.bot.wait_for('message', check=check2(player.user), timeout=10)
-                    if response in yes:
-                        challenged = True
-                except:
-                    pass
-        await asyncio.sleep(10)
-        if challenged:
-            # Does the user want to reveal their card, or pretend they don't have it/acknowledge they don't have it
-            pass
-        
-        #If the action is block-able, check with the target if they want to claim they can block
+    def MakeAction(self):
         pass
 
-
     def __repr__(self):
-        return self.__str__()
-    
-    def __str__(self):
         return str(self.user)
 
 class Deck:
@@ -173,10 +84,9 @@ class Deck:
     def draw_card(self):
         return self.cards.pop()
     
-    def refresh(self, characters: dict):
+    def populate(self):
         #Populate deck
-        for x in list(characters.keys()) * self.NUM_OF_CARD_IN_DECK:
-            self.cards.append(x)
+        pass
 
 """
 Creates a 'join prompt' in the server's channel that this was sent from.
@@ -188,13 +98,6 @@ START_CHECK = False
 REACTIONS = []
 MESSAGE_ID = None
 STARTED_BY_ID = None
-
-"""
-0 - Not active
-1 - Game requested, gathering players
-2 - Game in progress
-"""
-GAME_STAGE = 0
 
 def check(reaction, user):
         client = reaction.message.author
@@ -266,30 +169,22 @@ def unreaction_handle(reaction,user):
         print(e)
 
 async def run(ctx, *args):
-    global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK, GAME_STAGE
+    global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK
     if GAME_IN_PROGRESS:
-        await ctx.send("Sorry, a game is already in progress!")
+        ctx.send("Sorry, a game is already in progress!")
         return
     STARTED_BY_ID = ctx.author.id
-    GAME_STAGE = 1
     GAME_IN_PROGRESS = True
     event.USER_REACTED.add_handler(reaction_handle)
     event.USER_UNREACTED.add_handler(unreaction_handle)
     ### THIS IS EXECUTED WHEN THE COMMAND IS RUN
 
     d = Deck()
-    d.refresh(characters=characters)
+    d.populate()
 
     #Get players
     players = await GetPlayers(ctx, 6)
-    if len(players) < 2:
-        await ctx.send("Sorry, not enough players joined!")
-        return
-
-    GAME_STAGE = 2   
-    
-    #Shuffle the deck
-    d.shuffle()
+    print(players)
 
     async def TakeTurn(player):
         if player.cards == []:
@@ -298,7 +193,7 @@ async def run(ctx, *args):
         actions = player.ComputeActions()
         separator = '\t&\t'
         await player.user.send(f"Here are your cards:\n{separator.join(player.cards)}\nYour available actions are:\n{actions}")
-        action = await player.MakeAction(ctx, players) ################################################################### NOT COMPLETED ################################################################################
+        action = await player.MakeAction() ################################################################### NOT COMPLETED ################################################################################
         quit() #ONLY FOR TESTING PURPOSES
         return action
 
