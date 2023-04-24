@@ -124,7 +124,7 @@ class Player:
             await response.delete()
             await message.edit(f"Attempt #{i}\nThat is not a valid action. Valid actions include any of the bolded actions:\n{self.ComputeActions()}")
         # Now check if anyone wants to challenge the action, give 10 seconds
-        challenged = False
+        challenged = None
         for player in player_list:
             if player.user.id != self.user.id:
                 def check2(user):
@@ -135,11 +135,12 @@ class Player:
                 try:
                     response = await ctx.bot.wait_for('message', check=check2(player.user), timeout=10)
                     if response in yes:
-                        challenged = True
+                        challenged = player.user
                 except:
                     pass
         await asyncio.sleep(10)
         if challenged:
+            await ctx.send(f"{challenged} challenged {self.user}")
             # Does the user want to reveal their card, or pretend they don't have it/acknowledge they don't have it
             # if the challenge succeeds, THIS player loses 1 influence/dies if they only had 1 left
             # ^and then return the action as a string
