@@ -102,7 +102,7 @@ async def GetPlayers(ctx, MAX_PLAYERS):
             MESSAGE_ID = None
             return players
         if x % MULTIPLIER == 0:
-            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of 6 players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
+            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
 
     players = []
     for value in REACTIONS:
