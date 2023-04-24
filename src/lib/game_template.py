@@ -7,67 +7,21 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 from src.lib import event
 
-"""
-TODO:
-    - Complete GetPlayers() function
-    - Complete game logic loop
-    - Complete the Deck class
-"""
-
-"""
-ACCEPTED ACTIONS:
-- Tax
-- Assassinate
-- Steal
-- Exchange
-- Block
-- Take 1 coins (aka. _____)
-- Take 2 coins (aka. _____)
-- coup
-
-ACCEPTED COUNTER-ACTIONS:
-- Block assassination (Contessa)
-- Block steal (captain/ambassador)
-- Block taking 2 coins (Duke)
-"""
-
-characters = {
-    'Duke': '**Tax** (Take 3 coins from the treasury)',
-    'Assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
-    'Captain': '**Steal** (Take 2 coins from another player)',
-    'Ambassador': '**Exchange** (Trade in 2 cards from the deck)',
-    'Contessa': '**Block** (Block an assassination attempt)',
-    'Dead': 'n/a'
-}
-
 description = """WIP."""
 
 class Player:
     def __init__(self, user):
-        self.user = user #of type discord user
-        self.cards = []
-
-    def ComputeActions(self):
-        actions = ""
-        for card in self.cards:
-            r = f"\t{card} : {characters[card]}\n"
-            actions += r
-        for key,value in characters.items():
-            if not key in self.cards:
-                r = f"\t{key} : {value} (⚠️)\n"
-                actions += r
-        return actions
-    
-    def MakeAction(self):
         pass
 
     def __repr__(self):
-        return str(self.user)
+        return "<Player TEMPLATE>"
 
 class Deck:
     def __init__(self):
         self.cards = []
-        self.NUM_OF_CARD_IN_DECK = 3 #Number of each character in the deck
+    
+    def __repr__(self):
+        return "<Deck TEMPLATE>"
     
     def shuffle(self):
         tmp = []
@@ -103,14 +57,14 @@ def check(reaction, user):
         client = reaction.message.author
         return str(reaction.emoji) == "👍" and user.id != client.id
 
-async def GetPlayers(ctx, MAX_PLAYERS):
+async def GetPlayers(ctx, game_title, MAX_PLAYERS):
     #Requires Player object
     global MESSAGE_ID,START_CHECK
 
     MULTIPLIER = 2
     TIME_IN_SECONDS = 10
 
-    message = await ctx.send(f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
+    message = await ctx.send(f"React with 👍 to join the game of {game_title}!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     await message.add_reaction("👍")
     await message.add_reaction("⏯️")
     MESSAGE_ID = message.id
@@ -126,7 +80,7 @@ async def GetPlayers(ctx, MAX_PLAYERS):
             MESSAGE_ID = None
             return players
         if x % MULTIPLIER == 0:
-            await message.edit(content=f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
+            await message.edit(content=f"React with 👍 to join the game of {game_title}!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
 
     players = []
     for value in REACTIONS:
@@ -186,30 +140,7 @@ async def run(ctx, *args):
     players = await GetPlayers(ctx, 6)
     print(players)
 
-    async def TakeTurn(player):
-        if player.cards == []:
-            player.cards.append(d.draw_card())
-            player.cards.append(d.draw_card())
-        actions = player.ComputeActions()
-        separator = '\t&\t'
-        await player.user.send(f"Here are your cards:\n{separator.join(player.cards)}\nYour available actions are:\n{actions}")
-        action = await player.MakeAction() ################################################################### NOT COMPLETED ################################################################################
-        quit() #ONLY FOR TESTING PURPOSES
-        return action
-
-    # define the main game loop
-    current_player = 0
-    while len(players) > 1:
-        player = players[current_player]
-        result = await TakeTurn(player)
-        await ctx.send(f"{player} chose to {result}")
-        current_player = (current_player + 1) % len(players)
-
-    # determine the winner
-    if len(players) == 1:
-        await ctx.send(f"{players[0].user.mention} wins!")
-    else:
-        await ctx.send("It's a tie!")
+    # GAME LOGIC
     
     GAME_IN_PROGRESS = False
     START_CHECK = False
