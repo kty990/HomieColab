@@ -141,6 +141,8 @@ class Player:
         await asyncio.sleep(10)
         if challenged:
             # Does the user want to reveal their card, or pretend they don't have it/acknowledge they don't have it
+            # if the challenge succeeds, THIS player loses 1 influence/dies if they only had 1 left
+            # ^and then return the action as a string
             pass
         
         #If the action is block-able, check with the target if they want to claim they can block
