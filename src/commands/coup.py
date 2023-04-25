@@ -38,8 +38,7 @@ characters = {
     'Assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
     'Captain': '**Steal** (Take 2 coins from another player)',
     'Ambassador': '**Exchange** (Trade in 2 cards from the deck)',
-    'Contessa': '**Block** (Block an assassination attempt)',
-    'Dead': 'n/a'
+    'Contessa': '**Block** (Block an assassination attempt)'
 }
 
 description = """WIP."""
@@ -69,8 +68,11 @@ class Player:
         # Cannot be challenged
         pass
 
-    def foreign_aid(self):
+    async def foreign_aid(self):
         # Can be blocked
+        """ Check if anyone wants to block """
+        """ If yes, check if self wants to challenge the block --- If no, skip turn"""
+        """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
         self.coins += 2
         pass
 
@@ -89,7 +91,7 @@ class Player:
         """ Prompt target for which card they want to get rid of if they have 2 cards, otherwise they are dead """
         pass
 
-    def assassinate(self, player):
+    async def assassinate(self, player):
         # Can be blocked
         """ Check if target wants to block """
         """ If yes, check if self wants to challenge the block --- If no, eliminate()"""
@@ -97,7 +99,7 @@ class Player:
         
         pass
 
-    def steal(self, player):
+    async def steal(self, player):
         # Can be blocked
         """ Check if target wants to block """
         """ If yes, check if self wants to challenge the block --- If no:
@@ -105,9 +107,30 @@ class Player:
         """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
         pass
 
-    def exchange(player, deck):
-        # Can be challenged, handled before this function is called
+    async def exchange(self, deck):
+        # Can be challenged
         cards = deck.draw_cards(2)
+        card_pool = []
+        for x in cards:
+            card_pool.append(x)
+        for x in self.cards:
+            card_pool.append(x)
+        prompt = "\n- ".join([x.upper() for x in card_pool])
+        e = new_embed("COUP - Exchange",f"Pick 2 of the following cards to keep, the other 2 will be discarded!\n- {prompt}")
+        message = await self.user.send(embed=e)
+        
+        
+        """ REQUIRES SOME FORM OF REACTION """
+        reactions = {
+            "1️⃣":card_pool[0],
+            "2️⃣":card_pool[1],
+            "3️⃣":card_pool[2],
+            "4️⃣":card_pool[3],
+        }
+
+        for reaction in reactions.keys():
+            await message.add_reaction(reaction)
+        
         # let the player choose which cards to keep
         # and which to return to the deck
 
@@ -164,7 +187,7 @@ class Player:
                     def inner(message):
                         return message.author.id == user.id and isinstance(message.channel, DMChannel)
                     return inner 
-                e = new_embed("COUP",f"{str(self.user)} chose to {response.lower()}, do you wish to challenge?")
+                e = new_embed("COUP",f"{str(self.user)} chose to {response.content.lower()}, do you wish to challenge?")
                 message = await player.user.send(embed=e)
                 try:
                     response = await ctx.bot.wait_for('message', check=check2(player.user), timeout=10)
