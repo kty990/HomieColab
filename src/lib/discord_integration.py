@@ -1,6 +1,7 @@
 import discord
 
 async def DM_with_response(ctx, user=None, prompt=None, embed=None, whitelist=[], check=None):
+    assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type 'discord.Embed' or 'None', not {type(embed)}"
     assert check != None, "Must have a 'check' function to use discord_integration.DM_with_response"
     assert ctx != None, "Missing required CONTEXT object"
     whitelisted = True
@@ -17,11 +18,13 @@ async def DM_with_response(ctx, user=None, prompt=None, embed=None, whitelist=[]
     return response.content
 
 async def send_message(ctx, prompt=None, embed=None):
+    assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type discord.Embed"
     assert ctx != None, "Missing required CONTEXT object"
     message = await ctx.send(content=prompt, embed=embed)
     return message
 
 async def add_reaction(ctx, message, reaction=None, reaction_id=None):
+    assert ctx != None, "Missing required CONTEXT object"
     final_reaction = reaction
     if final_reaction == None:
         final_reaction = ctx.bot.get_emoji(reaction_id)
@@ -29,3 +32,6 @@ async def add_reaction(ctx, message, reaction=None, reaction_id=None):
 
 async def remove_reaction(message, reaction):
     await message.clear_reaction(reaction)
+
+async def edit_message(message, new_content=None, new_embed=None):
+    return await message.edit(content=new_content,embed=new_embed)

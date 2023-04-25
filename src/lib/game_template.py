@@ -6,6 +6,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.lib import event
+from src.lib import discord_integration
+from src.lib.embed import new_embed
 
 description = """WIP."""
 
@@ -64,9 +66,11 @@ async def GetPlayers(ctx, game_title, MAX_PLAYERS):
     MULTIPLIER = 2
     TIME_IN_SECONDS = 10
 
-    message = await ctx.send(f"React with 👍 to join the game of {game_title}!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
-    await message.add_reaction("👍")
-    await message.add_reaction("⏯️")
+
+    e = new_embed("<template>","<template>")
+    message = await discord_integration.send_message(ctx, "<template>", e)
+    await discord_integration.add_reaction("👍")
+    await discord_integration.add_reaction("⏯️")
     MESSAGE_ID = message.id
     # Wait for 60 seconds to allow for users to join
     for x in range(TIME_IN_SECONDS*MULTIPLIER):
@@ -80,7 +84,8 @@ async def GetPlayers(ctx, game_title, MAX_PLAYERS):
             MESSAGE_ID = None
             return players
         if x % MULTIPLIER == 0:
-            await message.edit(content=f"React with 👍 to join the game of {game_title}!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!")
+            e = new_embed("<template>","<template>")
+            await discord_integration.edit_message(message=message,new_embed=e)
 
     players = []
     for value in REACTIONS:
@@ -125,7 +130,7 @@ def unreaction_handle(reaction,user):
 async def run(ctx, *args):
     global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK
     if GAME_IN_PROGRESS:
-        ctx.send("Sorry, a game is already in progress!")
+        await discord_integration.send_message(ctx,prompt="Sorry, a game is already in progress!")
         return
     STARTED_BY_ID = ctx.author.id
     GAME_IN_PROGRESS = True
