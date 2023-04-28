@@ -1,1 +1,3 @@
 src/auth.json
+src/commands/__pycache__
+src/lib/__pycache__

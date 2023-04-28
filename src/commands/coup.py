@@ -9,6 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from src.lib import event
 from src.lib.word_aliases import yes
 from src.lib.embed import new_embed
+from src.lib import discord_integration
 
 """
 TODO:
@@ -107,7 +108,7 @@ class Player:
         """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
         pass
 
-    async def exchange(self, deck):
+    async def exchange(self, ctx, deck):
         # Can be challenged
         cards = deck.draw_cards(2)
         card_pool = []
@@ -131,8 +132,20 @@ class Player:
         for reaction in reactions.keys():
             await message.add_reaction(reaction)
         
-        # let the player choose which cards to keep
-        # and which to return to the deck
+        dm_channel = await self.user.create_dm()
+        reaction = await discord_integration.wait_for_reaction(ctx, reactions.keys(),self.user,dm_channel)
+        await message.clear_reaction(reaction)
+        new_keys = reactions.keys()
+        new_keys.remove(reaction)
+        reaction2 = await discord_integration.wait_for_reaction(ctx, new_keys, self.user, dm_channel)
+        new_keys.remove(reaction2)
+        cards = []
+        cards.append(reactions[reaction])
+        cards.append(reactions[reaction2])
+        for r in new_keys:
+            deck.add_card(reactions[r])
+        deck.shuffle()
+        self.cards = cards
 
     def ComputeActions(self):
         actions = ""
@@ -238,6 +251,9 @@ class Deck:
         #Populate deck
         for x in list(characters.keys()) * self.NUM_OF_CARD_IN_DECK:
             self.cards.append(x)
+
+    def add_card(self,card):
+        self.cards.append(card)
 
 """
 Creates a 'join prompt' in the server's channel that this was sent from.
