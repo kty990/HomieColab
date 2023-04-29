@@ -27,7 +27,7 @@ async def DM_no_response(ctx, user=None, prompt=None, embed=None):
     def check_for_user(message):
         return message.author.id == user.id
     response = await ctx.bot.wait_for('message', check=check_for_user, timeout=None)
-    return response.content
+    return response
 
 
 
@@ -45,7 +45,7 @@ str_reactions : a list of reaction emojis in string form
 user : discord.User object
 channel : A discord channel object.
 """
-async def wait_for_reaction(ctx, str_reactions, user, channel):
+async def wait_for_reaction(ctx, str_reactions, user, channel, timeout=None):
     assert isinstance(user, discord.User), "user must be of type discord.User"
     assert channel != None, "Channel cannot be None, must have channel value"
     
@@ -53,12 +53,22 @@ async def wait_for_reaction(ctx, str_reactions, user, channel):
         return str(reaction.emoji) in str_reactions and reacting_user == user and reaction.message.channel == channel
 
     try:
-        reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=None)
+        reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=timeout)
     except Exception:
         return None
     else:
         return reaction
 
+async def wait_for_reaction_timeout(ctx, str_reactions, user_list, timeout=None):    
+    def check(reaction, reacting_user):
+        return str(reaction.emoji) in str_reactions and reacting_user in user_list and reaction.message.channel in [user.create_dm() for user in user_list]
+
+    try:
+        reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=timeout)
+    except Exception:
+        return None
+    else:
+        return reaction
 
 async def add_reaction(ctx, message, reaction=None, reaction_id=None):
     assert ctx != None, "Missing required CONTEXT object"

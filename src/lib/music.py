@@ -67,7 +67,7 @@ class Music:
 
 
     async def play(self,ctx,url):
-        assert(ctx.guild.id in musics,"An unknown exception occured")
+        assert ctx.guild.id in musics,"An unknown exception occured"
 
         URL = await util.GenerateURL(url)
         guild = ctx.guild

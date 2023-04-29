@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import random
 import asyncio
 import sys
@@ -15,7 +17,7 @@ from src.lib import discord_integration
 TODO:
     - Complete GetPlayers() function | X
     - Complete game logic loop       |
-    - Complete the Deck class        |
+    - Complete the Deck class        | X
 """
 
 """
@@ -39,14 +41,14 @@ characters = {
     'Assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
     'Captain': '**Steal** (Take 2 coins from another player)',
     'Ambassador': '**Exchange** (Trade in 2 cards from the deck)',
-    'Contessa': '**Block** (Block an assassination attempt)'
+    'Contessa': '**n/a (only counter-action)** (Block an assassination attempt)'
 }
 
-description = """WIP."""
+description = """Play the classic card game Coup! on discord."""
 
 class Player:
     def __init__(self, user):
-        self.user = user #of type discord user
+        self.user = user
         self.cards = []
         self.influence = 2
         self.coins = 2
@@ -65,42 +67,65 @@ class Player:
             'foreign aid':['duke']
         }
 
-    def coup(self):
+    def coup(self, **kwargs):
         # Cannot be challenged
         pass
 
-    async def foreign_aid(self):
+    async def foreign_aid(self, **kwargs):
         # Can be blocked
-        """ Check if anyone wants to block """
-        """ If yes, check if self wants to challenge the block --- If no, skip turn"""
-        """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
-        self.coins += 2
-        pass
+        e = new_embed("COUP - Block","React with 🛡️ to block the action.")
+        player_list = kwargs['player_list']
+        ctx = kwargs['ctx']
+        for player in player_list:
+            msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
+            await discord_integration.add_reaction(ctx,msg,"🛡️",None)
+        reaction = discord_integration.wait_for_reaction_timeout(ctx,["🛡️"],[player.user for player in player_list])
+        if reaction != None:
+            # Blocked, does self challenge the block?
+            user = await ctx.bot.fetch_user(reaction.user_id)
+            e = new_embed("COUP - Blocked",f"{str(user)} has blocked {str(self.user)} from using foreign aid. Waiting for response about challenging the block...")
+            await discord_integration.send_message(ctx,None,e)
+            e = new_embed("COUP - Action blocked",f"{str(user)} has blocked your foreign aid. Do you challenge the block? (You have 10 seconds to decide)\nReact with ⚠️ to challenge. Do nothing and the block is automatically successful")
+            msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
+            await discord_integration.add_reaction("⚠️")
+            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[self.user],10)
+            if reaction:
+                #Challenged
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges {str(user)}'s block. Awaiting response...")
+                await discord_integration.send_message(ctx,None,e)
+                def has_correct_card_to_block():
+                    return 'duke' in self.cards
+                
+                prompt = f"{'have the correct card to block. React with any reaction to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card_to_block() else 'do not have the correct card to block. You lose the challenge!'}"
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
+                msg = await discord_integration.DM_no_response(ctx,user,None,e)
+            else:
+                #Block successful
+                pass
+        else:
+            self.coins += 2
 
-    def income(self):
+    def income(self, **kwargs):
         self.coins += 1
         pass
 
-    def tax(self, player):
+    def tax(self, **kwargs):
         # Can be challenged
         self.coins += 3
         pass
 
-    def eliminate(self, player):
+    def eliminate(self, **kwargs):
         # Eliminate 1 influence
-        player.influence -= 1
-        """ Prompt target for which card they want to get rid of if they have 2 cards, otherwise they are dead """
+        self.influence -= 1
+        """ Prompt for which card they want to get rid of if they have 2 cards, otherwise they are dead """
         pass
 
-    async def assassinate(self, player):
+    async def assassinate(self, **kwargs):
         # Can be blocked
-        """ Check if target wants to block """
-        """ If yes, check if self wants to challenge the block --- If no, eliminate()"""
-        """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
-        
-        pass
+        player = kwargs['player']
+        player.eliminate()
 
-    async def steal(self, player):
+    async def steal(self, **kwargs):
         # Can be blocked
         """ Check if target wants to block """
         """ If yes, check if self wants to challenge the block --- If no:
@@ -108,7 +133,9 @@ class Player:
         """ If self wants to challenge the block, check to see if the player wants to reveal their card (if they can) """
         pass
 
-    async def exchange(self, ctx, deck):
+    async def exchange(self, **kwargs):
+        deck = kwargs['deck']
+        ctx = kwargs['ctx']
         # Can be challenged
         cards = deck.draw_cards(2)
         card_pool = []
@@ -159,65 +186,66 @@ class Player:
         actions += f"**Income** : Take 1 coin\n**Foreign Aid** : Take 2 coins"
         return actions
     
-    async def MakeAction(self, ctx, player_list):
-        def check(message):
-            return isinstance(message.channel, DMChannel) and message.author.id == self.user.id
+    """REDO THIS FUNCTION TO USE REACTIONS"""
+    async def MakeAction(self, ctx, player_list, deck):
+        """ REQUIRES SOME FORM OF REACTION """
+        reactions = {
+            "1️⃣":self.tax,
+            "2️⃣":self.assassinate,
+            "3️⃣":self.steal,
+            "4️⃣":self.coup,
+            "5️⃣":self.income,
+            "6️⃣":self.foreign_aid,
+            "7️⃣":self.exchange
+        }
 
         e = new_embed("COUP",f"What do you choose to do?")
-        message = await self.user.send(embed=e)
-        response = await ctx.bot.wait_for('message', check=check, timeout=None)
-        target = None
-        i = 1
-        while response.content.lower() not in self.valid_actions.keys():
-            i += 1
-            await response.delete()
-            e.description = f"Attempt #{i}\nThat is not a valid action. Valid actions include any of the bolded actions:\n{self.ComputeActions()}"
-            await message.edit(embed=e)
-       
-        if response.content.lower() in ['assassinate','steal','coup']:
-            players_prompt = '\n- '.join([str(x)[:-5] for x in player_list])
-            e = new_embed("COUP",f"Who do you to want to {response.content.lower()}?\nValid options include: \n- {players_prompt}")
-            await self.user.send(embed=e)
-            target = await ctx.bot.wait_for('message', check=check, timeout=None)
-            i = 1
-            while not target.content.lower() in [str(x).lower()[:-5] for x in player_list]: #list comp for player user tags
-                i += 1
-                players_prompt = '\n- '.join([str(x)[:-5] for x in player_list])
-                e.description = f"Attempt #{i}\nWho do you to want to {response.content.lower()}?\nValid options include: \n- {players_prompt}"
-                await message.edit(embed=e)
-                target = await ctx.bot.wait_for('message', check=check, timeout=None)
-        
-            for x in player_list:
-                if str(x)[:-5].lower() == target.content.lower():
-                    target = x
-                    break
+        prompt = """1️⃣ tax,
+            2️⃣ assassinate,
+            3️⃣ steal,
+            4️⃣ coup,
+            5️⃣ income,
+            6️⃣ foreign_aid,
+            7️⃣ exchange"""
+        e.add_field(name="\u2800",value=prompt,inline=False)
+        e.add_field(name="Choose one of the following:",value=self.ComputeActions(), inline=False)
+        message = await discord_integration.DM_no_response(ctx,self.user,None,e)
 
-        # Now check if anyone wants to challenge the action, give 10 seconds
-        challenged = None
-        for player in player_list:
-            if player.user.id != self.user.id:
-                def check2(user):
-                    def inner(message):
-                        return message.author.id == user.id and isinstance(message.channel, DMChannel)
-                    return inner 
-                e = new_embed("COUP",f"{str(self.user)} chose to {response.content.lower()}, do you wish to challenge?")
-                message = await player.user.send(embed=e)
-                try:
-                    response = await ctx.bot.wait_for('message', check=check2(player.user), timeout=10)
-                    if response in yes:
-                        challenged = player.user
-                except:
-                    pass
-        await asyncio.sleep(10)
-        if challenged:
-            e = new_embed("COUP",f"{challenged} challenged {self.user}")
-            await ctx.send(embed=e)
-            # Does the user want to reveal their card, or pretend they don't have it/acknowledge they don't have it
-            # if the challenge succeeds, THIS player loses 1 influence/dies if they only had 1 left
-            # ^and then return the action as a string
-            pass
-        
-        #If the action is block-able, check with the target if they want to claim they can block
+        dm_channel = await self.user.create_dm()
+        for reaction in reactions.keys():
+            await discord_integration.add_reaction(ctx,message,reaction,None)
+
+        choice = await discord_integration.wait_for_reaction(ctx,reactions.keys(),self.user,dm_channel)
+        if self.coins >= 10:
+            #MUST coup
+            group_e = new_embed("COUP - Action taken",f"{str(self.user)} has {self.coins} coins and must coup another player. Awaiting target selection.")
+            await discord_integration.DM_no_response(ctx,self.user,f"Sorry but you have {self.coins} coins, you have to coup another player!",None)
+            await discord_integration.send_message(ctx,None,group_e)
+            target_string = ""
+            i = 1
+            targets = {}
+            for player in player_list:
+                reaction_template = f"{chr(ord(str(i)))}\uFe0F\u20E3"
+                targets[f"{reaction_template}"] = player.user
+                target_string += f"{reaction_template} : {str(player.user)}"
+                targets.append(reaction_template)
+                i += 1
+            target_embed = new_embed(name="COUP - Select a target!",value=target_string,inline=False)
+            target_message = await discord_integration.DM_no_response(ctx,self.user,None,target_embed)
+            for key in targets.keys():
+                await target_message.add_reaction(key) # This may not work, may have to hard-code the emojis
+
+            chosen_target = await discord_integration.wait_for_reaction(ctx,targets.keys(),self.user,dm_channel)
+            targets[str(chosen_target)].eliminate()
+            self.coins -= 7
+        else:
+            #Check for challenge
+
+
+            #If no challenge
+            target = None #Should be obtained from a reaction check, and then converted to a player object
+            reactions[str(choice)](ctx=ctx,deck=deck,target=target)
+
         pass
 
 
@@ -250,7 +278,7 @@ class Deck:
     def refresh(self, characters: dict):
         #Populate deck
         for x in list(characters.keys()) * self.NUM_OF_CARD_IN_DECK:
-            self.cards.append(x)
+            self.cards.append(x.lower())
 
     def add_card(self,card):
         self.cards.append(card)
@@ -284,7 +312,7 @@ async def GetPlayers(ctx, MAX_PLAYERS):
     MULTIPLIER = 2
     TIME_IN_SECONDS = 10
 
-    e = new_embed('COUP',f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
+    e = new_embed('COUP',f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join! ({len(REACTIONS)}/{MAX_PLAYERS})\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     message = await ctx.send(embed=e)
     await message.add_reaction("👍")
     await message.add_reaction("⏯️")
@@ -301,12 +329,13 @@ async def GetPlayers(ctx, MAX_PLAYERS):
             MESSAGE_ID = None
             return players
         if x % MULTIPLIER == 0:
-            e.description = f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join!\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!"
+            e.description = f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join! ({len(REACTIONS)}/{MAX_PLAYERS})\nYou have **{int(TIME_IN_SECONDS-((x/MULTIPLIER)+1))}** seconds left to react!"
             await message.edit(embed=e)
 
     players = []
     for value in REACTIONS:
         players.append(Player(value['user']))
+    await message.delete()
     return players
 
 def allow_start(reaction,user):
@@ -363,6 +392,11 @@ async def run(ctx, *args):
     players = await GetPlayers(ctx, 6)
     if len(players) < 2:
         e = new_embed("COUP","Sorry, not enough players joined!")
+        GAME_IN_PROGRESS = False
+        START_CHECK = False
+        STARTED_BY_ID = None
+        event.USER_REACTED.remove_handler(reaction_handle)
+        event.USER_UNREACTED.remove_handler(unreaction_handle)
         await ctx.send(embed=e)
         return
 
@@ -379,7 +413,7 @@ async def run(ctx, *args):
         separator = '\t&\t'
         e = new_embed("COUP",f"Here are your cards:\n{separator.join(player.cards)}\nYour available actions are:\n{actions}")
         await player.user.send(embed=e)
-        action = await player.MakeAction(ctx, players) ################################################################### NOT COMPLETED ################################################################################
+        action = await player.MakeAction(ctx, players, d) ################################################################### NOT COMPLETED ################################################################################
         quit() #ONLY FOR TESTING PURPOSES
         return action
 
