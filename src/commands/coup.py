@@ -4,12 +4,10 @@ import random
 import asyncio
 import sys
 import os
-from discord import DMChannel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.lib import event
-from src.lib.word_aliases import yes
 from src.lib.embed import new_embed
 from src.lib import discord_integration
 
@@ -277,8 +275,21 @@ class Player:
                         return True
                     else:
                         return False
+                    
+                def GetShowCard():
+                    name = reactions[str(choice)].__name__.replace("_"," ")
+                    if name == "tax" and 'duke' in self.cards:
+                        return 'duke'
+                    elif name == "steal" and 'captain' in self.cards:
+                        return 'captain'
+                    elif name == "assassinate" and 'assassin' in self.cards:
+                        return 'assassin'
+                    elif name == 'exchange' and 'ambassador' in self.cards:
+                        return 'ambassador'
+                    else:
+                        return 'An unknown error occured'
                 
-                prompt = f"{'have the correct card to perform your action. React with any reaction to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card() else 'do not have the correct card to perform your action. You lose the challenge!'}"
+                prompt = f"{'have the correct card to perform your action. React with ⚠️ to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card() else 'do not have the correct card to perform your action. You lose the challenge!'}"
                 e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
                 e.add_field(name="\u2800",value="You have **10** seconds.",inline=False)
                 msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
@@ -287,15 +298,20 @@ class Player:
                     reaction = await discord_integration.wait_for_reaction(ctx,['⚠️'],self.user,dm_channel,10)
                     if reaction:
                         #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        #Show the card to everyone, and prompt user for if they should switch out the card
-                        pass
+                        e = new_embed("COUP - Challenge",f"{str(self.user)} wins the challenge by showing their {GetShowCard()}. Awaiting response...")
+                        await discord_integration.send_message(ctx,None,e)
+                        e = new_embed("COUP - Replace?",f"Do you wish to replace your {GetShowCard()}?\nReact with ⚠️ to replace the card with a random card from the deck.\nYou have **10** seconds!")
+                        msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
+                        await discord_integration.add_reaction(ctx,msg,'⚠️',None)
+                        reaction = await discord_integration.wait_for_reaction(ctx,['⚠️'],self.user,dm_channel,10)
+                        if reaction:
+                            #Replace the card
+                            old_card = GetShowCard()
+                            self.cards.remove(old_card)
+                            deck.add_card(old_card)
+                            deck.shuffle()
+                            new_card = deck.draw_card()
+                            self.cards.append(new_card)
                     else:
                         self.eliminate(ctx=ctx,deck=deck,target=target,player_list=player_list)
                 else:
