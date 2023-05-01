@@ -94,7 +94,7 @@ async def run(ctx, *args):
             output += f"{f_string % ('cmds',description or '<< description unavailable >>')}"
         else:
             output += f"{f_string % (command,module.description or '<< description unavailable >>')}"
-    e = discord.Embed(title="Commands", description=output, color=0x00000)
+    e = discord.Embed(title="Commands", description=output, color=0xffffff)
     e.set_footer(text=f"{ctx.bot.user}")
     # print(output)
     avatar_url = f"{str(ctx.author.avatar.url)}"
