@@ -1,9 +1,9 @@
 import discord
 
 async def DM_with_response(ctx, user=None, prompt=None, embed=None, whitelist=[], check=None):
-    assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type 'discord.Embed' or 'None', not {type(embed)}"
-    assert check != None, "Must have a 'check' function to use discord_integration.DM_with_response"
-    assert ctx != None, "Missing required CONTEXT object"
+    # assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type 'discord.Embed' or 'None', not {type(embed)}"
+    # assert check != None, "Must have a 'check' function to use discord_integration.DM_with_response"
+    # assert ctx != None, "Missing required CONTEXT object"
     whitelisted = True
     if whitelist == []:
         whitelisted = False
@@ -21,20 +21,17 @@ async def DM_with_response(ctx, user=None, prompt=None, embed=None, whitelist=[]
 
 
 async def DM_no_response(ctx, user=None, prompt=None, embed=None):
-    assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type 'discord.Embed' or 'None', not {type(embed)}"
-    assert ctx != None, "Missing required CONTEXT object"
+    # assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type 'discord.Embed' or 'None', not {type(embed)}"
+    # assert ctx != None, "Missing required CONTEXT object"
     message = await user.send(content=prompt, embed=embed)
-    def check_for_user(message):
-        return message.author.id == user.id
-    response = await ctx.bot.wait_for('message', check=check_for_user, timeout=None)
-    return response
+    return message
 
 
 
 
 async def send_message(ctx, prompt=None, embed=None):
-    assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type discord.Embed"
-    assert ctx != None, "Missing required CONTEXT object"
+    # assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type discord.Embed"
+    # assert ctx != None, "Missing required CONTEXT object"
     message = await ctx.send(content=prompt, embed=embed)
     return message
 
@@ -46,8 +43,8 @@ user : discord.User object
 channel : A discord channel object.
 """
 async def wait_for_reaction(ctx, str_reactions, user, channel, timeout=None):
-    assert isinstance(user, discord.User), "user must be of type discord.User"
-    assert channel != None, "Channel cannot be None, must have channel value"
+    # assert isinstance(user, discord.User), "user must be of type discord.User"
+    # assert channel != None, "Channel cannot be None, must have channel value"
     
     def check(reaction, reacting_user):
         return str(reaction.emoji) in str_reactions and reacting_user == user and reaction.message.channel == channel
@@ -59,9 +56,9 @@ async def wait_for_reaction(ctx, str_reactions, user, channel, timeout=None):
     else:
         return reaction
 
-async def wait_for_reaction_timeout(ctx, str_reactions, user_list, timeout=None):    
+async def wait_for_reaction_timeout(ctx, str_reactions, user_list, channels, timeout=None):
     def check(reaction, reacting_user):
-        return str(reaction.emoji) in str_reactions and reacting_user in user_list and reaction.message.channel in [user.create_dm() for user in user_list]
+        return str(reaction.emoji) in str_reactions and reacting_user in user_list and reaction.message.channel in channels
 
     try:
         reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=timeout)
@@ -70,14 +67,16 @@ async def wait_for_reaction_timeout(ctx, str_reactions, user_list, timeout=None)
     else:
         return reaction
 
-async def add_reaction(ctx, message, reaction=None, reaction_id=None):
-    assert ctx != None, "Missing required CONTEXT object"
-    assert message != None, "Missing required discord.Message object"
-    assert reaction != None or reaction_id != None, "Requires either reaction or reaction id, both appear to be 'None'"
+async def add_reaction_(ctx, message, reaction=None, reaction_id=None):
+    # assert ctx != None, "Missing required CONTEXT object"
+    # assert message != None, "Missing required discord.Message object"
+    # assert reaction != None or reaction_id != None, "Requires either reaction or reaction id, both appear to be 'None'"
     final_reaction = reaction
     if final_reaction == None:
         final_reaction = ctx.bot.get_emoji(reaction_id)
+    print("Attempting reaction add")
     await message.add_reaction(final_reaction)
+    print("Reaction added!")
 
 
 

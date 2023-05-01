@@ -40,7 +40,7 @@ for module_name, module in loader.CommandObject.commands.items():
 
 ######################### EVENTS ############################
 
-@bot.event
+"""@bot.event
 async def on_command_error(ctx, error):
     print(error)
     if isinstance(error, commands.CommandNotFound):
@@ -51,7 +51,7 @@ async def on_command_error(ctx, error):
 
     # send a message to the user
     await ctx.send("An error occurred while processing your command. Please try again later.")
-
+"""
 @bot.event
 async def on_reaction_add(reaction,user):
     event.USER_REACTED.fire(reaction=reaction,user=user)

@@ -35,11 +35,11 @@ ACCEPTED COUNTER-ACTIONS:
 """
 
 characters = {
-    'Duke': '**Tax** (Take 3 coins from the treasury)',
-    'Assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
-    'Captain': '**Steal** (Take 2 coins from another player)',
-    'Ambassador': '**Exchange** (Trade in 2 cards from the deck)',
-    'Contessa': '**n/a (only counter-action)** (Block an assassination attempt)'
+    'duke': '**Tax** (Take 3 coins from the treasury)',
+    'assassin': '**Assassinate** (Pay 3 coins to eliminate a player\'s influence)',
+    'captain': '**Steal** (Take 2 coins from another player)',
+    'ambassador': '**Exchange** (Trade in 2 cards from the deck)',
+    'contessa': '**n/a (only counter-action)** (Block an assassination attempt)'
 }
 
 description = """Play the classic card game Coup! on discord."""
@@ -77,7 +77,7 @@ class Player:
         ctx = kwargs['ctx']
         for player in player_list:
             msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
-            await discord_integration.add_reaction(ctx,msg,"🛡️",None)
+            await discord_integration.add_reaction_(ctx,msg,"🛡️",None)
         reaction = discord_integration.wait_for_reaction_timeout(ctx,["🛡️"],[player.user for player in player_list])
         if reaction != None:
             # Blocked, does self challenge the block?
@@ -86,7 +86,7 @@ class Player:
             await discord_integration.send_message(ctx,None,e)
             e = new_embed("COUP - Action blocked",f"{str(user)} has blocked your foreign aid. Do you challenge the block? (You have 10 seconds to decide)\nReact with ⚠️ to challenge. Do nothing and the block is automatically successful")
             msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
-            await discord_integration.add_reaction("⚠️")
+            await discord_integration.add_reaction_("⚠️")
             reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[self.user],10)
             if reaction:
                 #Challenged
@@ -100,7 +100,7 @@ class Player:
                 msg = await discord_integration.DM_no_response(ctx,user,None,e)
             else:
                 #Block successful
-                pass
+                self.coins += 2
         else:
             self.coins += 2
 
@@ -125,8 +125,8 @@ class Player:
         prompt = f"React with one of the following:\n1️⃣:{self.cards[0]}\n2️⃣:{self.cards[1]}"
         e = new_embed("COUP - Eliminate 1 influence",prompt)
         msg = discord_integration.DM_no_response(ctx,self.user,None,e)
-        await discord_integration.add_reaction(ctx,msg,'1️⃣',None)
-        await discord_integration.add_reaction(ctx,msg,'2️⃣',None)
+        await discord_integration.add_reaction_(ctx,msg,'1️⃣',None)
+        await discord_integration.add_reaction_(ctx,msg,'2️⃣',None)
         dm_channel = await self.user.create_dm()
         reaction = await discord_integration.wait_for_reaction(ctx,['1️⃣','2️⃣'],self.user,dm_channel,None)
         if str(reaction) == '1️⃣':
@@ -135,18 +135,77 @@ class Player:
             self.cards[1] = '**dead**'
 
     async def assassinate(self, **kwargs):
-        # Can be blocked
-        player = kwargs['player']
-        player.eliminate(kwargs)
+        e = new_embed("COUP - Block","React with 🛡️ to block the action.")
+        player_list = kwargs['player_list']
+        ctx = kwargs['ctx']
+        for player in player_list:
+            msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
+            await discord_integration.add_reaction_(ctx,msg,"🛡️",None)
+        reaction = discord_integration.wait_for_reaction_timeout(ctx,["🛡️"],[player.user for player in player_list])
+        if reaction != None:
+            # Blocked, does self challenge the block?
+            user = await ctx.bot.fetch_user(reaction.user_id)
+            e = new_embed("COUP - Blocked",f"{str(user)} has blocked {str(self.user)} from using foreign aid. Waiting for response about challenging the block...")
+            await discord_integration.send_message(ctx,None,e)
+            e = new_embed("COUP - Action blocked",f"{str(user)} has blocked your foreign aid. Do you challenge the block? (You have 10 seconds to decide)\nReact with ⚠️ to challenge. Do nothing and the block is automatically successful")
+            msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
+            await discord_integration.add_reaction_("⚠️")
+            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[self.user],10)
+            if reaction:
+                #Challenged
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges {str(user)}'s block. Awaiting response...")
+                await discord_integration.send_message(ctx,None,e)
+                def has_correct_card_to_block():
+                    return 'duke' in self.cards
+                    
+                prompt = f"{'have the correct card to block. React with any reaction to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card_to_block() else 'do not have the correct card to block. You lose the challenge!'}"
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
+                msg = await discord_integration.DM_no_response(ctx,user,None,e)
+            else:
+                #Block successful
+                player = kwargs['player']
+                player.eliminate(kwargs)
+        else:
+            # Can be blocked
+            player = kwargs['player']
+            player.eliminate(kwargs)
 
     async def steal(self, **kwargs):
-        # Can be blocked &/or blocked
-        #Check for challenge     
-        """CHECK FOR BLOCK"""
-
-        player = kwargs['target']
-        player.coins -= 2 
-        self.coins += 2
+        e = new_embed("COUP - Block","React with 🛡️ to block the action.")
+        player_list = kwargs['player_list']
+        ctx = kwargs['ctx']
+        for player in player_list:
+            msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
+            await discord_integration.add_reaction_(ctx,msg,"🛡️",None)
+        reaction = discord_integration.wait_for_reaction_timeout(ctx,["🛡️"],[player.user for player in player_list])
+        if reaction != None:
+            # Blocked, does self challenge the block?
+            user = await ctx.bot.fetch_user(reaction.user_id)
+            e = new_embed("COUP - Blocked",f"{str(user)} has blocked {str(self.user)} from using foreign aid. Waiting for response about challenging the block...")
+            await discord_integration.send_message(ctx,None,e)
+            e = new_embed("COUP - Action blocked",f"{str(user)} has blocked your foreign aid. Do you challenge the block? (You have 10 seconds to decide)\nReact with ⚠️ to challenge. Do nothing and the block is automatically successful")
+            msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
+            await discord_integration.add_reaction_("⚠️")
+            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[self.user],10)
+            if reaction:
+                #Challenged
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges {str(user)}'s block. Awaiting response...")
+                await discord_integration.send_message(ctx,None,e)
+                def has_correct_card_to_block():
+                    return 'duke' in self.cards
+                    
+                prompt = f"{'have the correct card to block. React with any reaction to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card_to_block() else 'do not have the correct card to block. You lose the challenge!'}"
+                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
+                msg = await discord_integration.DM_no_response(ctx,user,None,e)
+            else:
+                #Block successful
+                player = kwargs['target']
+                player.coins -= 2 
+                self.coins += 2
+        else:
+            player = kwargs['target']
+            player.coins -= 2 
+            self.coins += 2
 
     async def exchange(self, **kwargs):
         deck = kwargs['deck']
@@ -224,11 +283,7 @@ class Player:
             7️⃣ exchange"""
         e.add_field(name="\u2800",value=prompt,inline=False)
         e.add_field(name="Choose one of the following:",value=self.ComputeActions(), inline=False)
-        message = await discord_integration.DM_no_response(ctx,self.user,None,e)
-
         dm_channel = await self.user.create_dm()
-        for reaction in reactions.keys():
-            await discord_integration.add_reaction(ctx,message,reaction,None)
 
         choice = await discord_integration.wait_for_reaction(ctx,reactions.keys(),self.user,dm_channel)
         if self.coins >= 10:
@@ -254,14 +309,20 @@ class Player:
             targets[str(chosen_target)].eliminate()
             self.coins -= 7
         else:
+            message = await discord_integration.DM_no_response(ctx,self.user,None,e)
+        
+            for reaction in reactions.keys():
+                await discord_integration.add_reaction_(ctx,message,reaction,None)
+
             """HANDLE CHALLENGE HERE"""
             if reactions[str(choice)].__name__.replace("_"," ").lower().strip() in ['tax','assassinate','steal','exchange']:
-                for player in player_list:
-                    e = new_embed("COUP - Challenge",f"If you wish to challenge please react to this message. You have **10** seconds to do so.")
-                    msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
-                    await discord_integration.add_reaction(ctx,msg,'⚠️',None)
-
-            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[player.user for player in player_list],10)
+                e = new_embed("COUP - Challenge",f"If you wish to challenge please react to this message. You have **10** seconds to do so.")
+                msg = await discord_integration.send_message(ctx,None,e)
+                await discord_integration.add_reaction_(ctx,msg,'⚠️',None)
+                    
+            users = player_list
+            users.remove(self)
+            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],users,[ctx.channel],10)
             if reaction:
                 def has_correct_card():
                     name = reactions[str(choice)].__name__.replace("_"," ")
@@ -290,11 +351,11 @@ class Player:
                         return 'An unknown error occured'
                 
                 prompt = f"{'have the correct card to perform your action. React with ⚠️ to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card() else 'do not have the correct card to perform your action. You lose the challenge!'}"
-                e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
+                e = new_embed("COUP - Action challenged!",f"{str(self.user)} challenges your action. You {prompt}")
                 e.add_field(name="\u2800",value="You have **10** seconds.",inline=False)
                 msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
                 if has_correct_card():
-                    await discord_integration.add_reaction(ctx,msg,'⚠️',None)
+                    await discord_integration.add_reaction_(ctx,msg,'⚠️',None)
                     reaction = await discord_integration.wait_for_reaction(ctx,['⚠️'],self.user,dm_channel,10)
                     if reaction:
                         #Show the card to everyone, and prompt user for if they should switch out the card
@@ -302,7 +363,7 @@ class Player:
                         await discord_integration.send_message(ctx,None,e)
                         e = new_embed("COUP - Replace?",f"Do you wish to replace your {GetShowCard()}?\nReact with ⚠️ to replace the card with a random card from the deck.\nYou have **10** seconds!")
                         msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
-                        await discord_integration.add_reaction(ctx,msg,'⚠️',None)
+                        await discord_integration.add_reaction_(ctx,msg,'⚠️',None)
                         reaction = await discord_integration.wait_for_reaction(ctx,['⚠️'],self.user,dm_channel,10)
                         if reaction:
                             #Replace the card
@@ -319,23 +380,24 @@ class Player:
             
 
             """GET TARGET AND PERFORM ACTION"""
-            target_string = ""
-            i = 1
-            targets = {}
-            for player in player_list:
-                reaction_template = f"{chr(ord(str(i)))}\uFe0F\u20E3"
-                targets[f"{reaction_template}"] = player.user
-                target_string += f"{reaction_template} : {str(player.user)}"
-                targets.append(reaction_template)
-                i += 1
-            target_embed = new_embed(name="COUP - Select a target!",value=target_string,inline=False)
-            target_message = await discord_integration.DM_no_response(ctx,self.user,None,target_embed)
-            for key in targets.keys():
-                await target_message.add_reaction(key) # This may not work, may have to hard-code the emojis
+            if reactions[str(choice)].__name__.replace("_"," ") in ['assassinate','steal','coup']:
+                target_string = ""
+                i = 1
+                targets = {}
+                for player in player_list:
+                    reaction_template = f"{chr(ord(str(i)))}\uFe0F\u20E3"
+                    targets[f"{reaction_template}"] = player.user
+                    target_string += f"{reaction_template} : {str(player.user)}"
+                    # targets.append(reaction_template)
+                    i += 1
+                target_embed = new_embed("COUP - Select a target!",target_string)
+                target_message = await discord_integration.DM_no_response(ctx,self.user,None,target_embed)
+                for key in targets.keys():
+                    await target_message.add_reaction(key) # This may not work, may have to hard-code the emojis
 
-            chosen_target = await discord_integration.wait_for_reaction(ctx,targets.keys(),self.user,dm_channel)
-            target = targets[str(chosen_target)]
-            reactions[str(choice)](ctx=ctx,deck=deck,target=target,player_list=player_list)
+                chosen_target = await discord_integration.wait_for_reaction(ctx,targets.keys(),self.user,dm_channel)
+                target = targets[str(chosen_target)]
+                reactions[str(choice)](ctx=ctx,deck=deck,target=target,player_list=player_list)
 
         name = None
         try:
@@ -409,7 +471,7 @@ async def GetPlayers(ctx, MAX_PLAYERS):
     global MESSAGE_ID,START_CHECK
 
     MULTIPLIER = 2
-    TIME_IN_SECONDS = 10
+    TIME_IN_SECONDS = 60
 
     e = new_embed('COUP',f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join! ({len(REACTIONS)}/{MAX_PLAYERS})\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     message = await ctx.send(embed=e)
@@ -489,6 +551,10 @@ async def run(ctx, *args):
 
     #Get players
     players = await GetPlayers(ctx, 6)
+    for player in players:
+        if player.cards == []:
+            player.cards.append(d.draw_card())
+            player.cards.append(d.draw_card())
     if len(players) < 2:
         e = new_embed("COUP","Sorry, not enough players joined!")
         GAME_IN_PROGRESS = False
@@ -505,16 +571,13 @@ async def run(ctx, *args):
     d.shuffle()
 
     async def TakeTurn(player):
-        if player.cards == []:
-            player.cards.append(d.draw_card())
-            player.cards.append(d.draw_card())
-        actions = player.ComputeActions()
-        separator = '\t&\t'
-        e = new_embed("COUP",f"Here are your cards:\n{separator.join(player.cards)}\nYour available actions are:\n{actions}")
-        await player.user.send(embed=e)
         action = await player.MakeAction(ctx, players, d) ################################################################### NOT COMPLETED ################################################################################
         return action
 
+    for player in players:
+        e = new_embed("COUP - Your cards",f"{player.cards[0]}: {characters[player.cards[0]]}\n{player.cards[1]}: {characters[player.cards[1]]}")
+        await discord_integration.DM_no_response(ctx,player.user,None,e)
+    
     # define the main game loop
     current_player = 0
     while len(players) > 1:
@@ -527,9 +590,9 @@ async def run(ctx, *args):
         e = new_embed("COUP",(success if result != 'block' else fail))
         await ctx.send(embed=e)
         current_player = (current_player + 1) % len(players)
-        while current_player.dead:
+        while player.dead:
             players.remove(current_player)
-            current_player = (current_player + 1) % len(players)
+            player = (current_player + 1) % len(players)
 
     # determine the winner
     if len(players) == 1:
@@ -542,3 +605,41 @@ async def run(ctx, *args):
     STARTED_BY_ID = None
     event.USER_REACTED.remove_handler(reaction_handle)
     event.USER_UNREACTED.remove_handler(unreaction_handle)
+
+
+
+
+"""
+
+e = new_embed("COUP - Block","React with 🛡️ to block the action.")
+    player_list = kwargs['player_list']
+    ctx = kwargs['ctx']
+    for player in player_list:
+        msg = await discord_integration.DM_no_response(ctx,player.user,None,e)
+        await discord_integration.add_reaction_(ctx,msg,"🛡️",None)
+    reaction = discord_integration.wait_for_reaction_timeout(ctx,["🛡️"],[player.user for player in player_list])
+    if reaction != None:
+        # Blocked, does self challenge the block?
+        user = await ctx.bot.fetch_user(reaction.user_id)
+        e = new_embed("COUP - Blocked",f"{str(user)} has blocked {str(self.user)} from using foreign aid. Waiting for response about challenging the block...")
+        await discord_integration.send_message(ctx,None,e)
+        e = new_embed("COUP - Action blocked",f"{str(user)} has blocked your foreign aid. Do you challenge the block? (You have 10 seconds to decide)\nReact with ⚠️ to challenge. Do nothing and the block is automatically successful")
+        msg = await discord_integration.DM_no_response(ctx,self.user,None,e)
+        await discord_integration.add_reaction_("⚠️")
+        reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],[self.user],10)
+        if reaction:
+            #Challenged
+            e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges {str(user)}'s block. Awaiting response...")
+            await discord_integration.send_message(ctx,None,e)
+            def has_correct_card_to_block():
+                return 'duke' in self.cards
+                
+            prompt = f"{'have the correct card to block. React with any reaction to show the card and win the challenge. Do nothing and you lose the challenge and an influence.' if has_correct_card_to_block() else 'do not have the correct card to block. You lose the challenge!'}"
+            e = new_embed("COUP - Block challenged!",f"{str(self.user)} challenges your block. You {prompt}")
+            msg = await discord_integration.DM_no_response(ctx,user,None,e)
+        else:
+            #Block successful
+            #ACTION
+    else:
+        #ACTION
+"""
