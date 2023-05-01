@@ -56,10 +56,21 @@ async def wait_for_reaction(ctx, str_reactions, user, channel, timeout=None):
     else:
         return reaction
 
-async def wait_for_reaction_timeout(ctx, str_reactions, user_list, channels, timeout=None):
+async def wait_for_reaction_timeout(ctx, str_reactions, user_list, timeout=None):    
+    def check(reaction, reacting_user):
+        return str(reaction.emoji) in str_reactions and reacting_user in user_list and reaction.message.channel in [user.create_dm() for user in user_list]
+
+    try:
+        reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=timeout)
+    except Exception:
+        return None
+    else:
+        return reaction
+
+async def wait_for_reaction_timeout_global(ctx, str_reactions, user_list, channels, timeout=None):
     def check(reaction, reacting_user):
         return str(reaction.emoji) in str_reactions and reacting_user in user_list and reaction.message.channel in channels
-
+    
     try:
         reaction, _ = await ctx.bot.wait_for('reaction_add', check=check, timeout=timeout)
     except Exception:

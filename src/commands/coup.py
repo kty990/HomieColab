@@ -322,7 +322,7 @@ class Player:
                     
             users = player_list
             users.remove(self)
-            reaction = await discord_integration.wait_for_reaction_timeout(ctx,['⚠️'],users,[ctx.channel],10)
+            reaction = await discord_integration.wait_for_reaction_timeout_global(ctx,['⚠️'],users,[ctx.channel],10)
             if reaction:
                 def has_correct_card():
                     name = reactions[str(choice)].__name__.replace("_"," ")
