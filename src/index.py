@@ -9,6 +9,8 @@ from discord.ext import commands
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.lib import event
+from src.lib import discord_integration
+from src.lib.embed import new_embed
 
 auth_file = os.path.join(os.path.dirname(__file__), 'auth.json')
 cmds = {}
@@ -40,7 +42,7 @@ for module_name, module in loader.CommandObject.commands.items():
 
 ######################### EVENTS ############################
 
-"""@bot.event
+@bot.event
 async def on_command_error(ctx, error):
     print(error)
     if isinstance(error, commands.CommandNotFound):
@@ -50,8 +52,13 @@ async def on_command_error(ctx, error):
     print(f"An error occurred: {error}")
 
     # send a message to the user
-    await ctx.send("An error occurred while processing your command. Please try again later.")
-"""
+    err = str(error)
+    if len(err) > 150:
+        err = err[:150]
+    e = new_embed("Error!","An error occurred while processing your command. Please try again later.",0xff0000)
+    e.add_field(name="\u2800",value=err,inline=False)
+    await discord_integration.send_message(ctx,None,e)
+
 @bot.event
 async def on_reaction_add(reaction,user):
     event.USER_REACTED.fire(reaction=reaction,user=user)
