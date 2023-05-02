@@ -54,7 +54,7 @@ async def on_command_error(ctx, error):
     # send a message to the user
     err = str(error)
     if len(err) > 150:
-        err = err[:150]
+        err = err[:150] + "  (...) omitted some output"
     e = new_embed("Error!","An error occurred while processing your command. Please try again later.",0xff0000)
     e.add_field(name="\u2800",value=err,inline=False)
     await discord_integration.send_message(ctx,None,e)
