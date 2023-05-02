@@ -116,6 +116,7 @@ class Player:
     async def coup(self, **kwargs):
         # Cannot be challenged
         player_list = kwargs['player_list']
+        ctx = kwargs['ctx']
         target_string = ""
         i = 1
         targets = {}
@@ -129,7 +130,8 @@ class Player:
         target_message = await discord_integration.DM_no_response(ctx,self.user,None,target_embed)
         for key in targets.keys():
             await target_message.add_reaction(key) # This may not work, may have to hard-code the emojis
-
+        
+        dm_channel = await self.user.create_dm()
         chosen_target = await discord_integration.wait_for_reaction(ctx,targets.keys(),self.user,dm_channel)
         targets[str(chosen_target)].eliminate()
         self.coins -= 7
