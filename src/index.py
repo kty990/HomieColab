@@ -41,7 +41,6 @@ for module_name, module in loader.CommandObject.commands.items():
     cmds[module_name] = command_func
 
 ######################### EVENTS ############################
-
 @bot.event
 async def on_command_error(ctx, error):
     print(error)

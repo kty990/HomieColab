@@ -77,6 +77,15 @@ async def wait_for_reaction_timeout_global(ctx, str_reactions, user_list, channe
         return None
     else:
         return reaction
+    
+async def wait_for_reaction_all(ctx, msg, players, str_reactions):
+    reactions = {}
+    user_ids = [player.user.id for player in players]
+    for user_id in user_ids:
+        reaction, user = await ctx.bot.wait_for('reaction_add', check=lambda r, u: u.id == user_id and r.message.id == msg.id and str(r.emoji) in str_reactions)
+        reactions[user_id] = reaction.emoji
+    return reactions
+
 
 async def add_reaction_(ctx, message, reaction=None, reaction_id=None):
     # assert ctx != None, "Missing required CONTEXT object"
@@ -90,7 +99,8 @@ async def add_reaction_(ctx, message, reaction=None, reaction_id=None):
     print("Reaction added!")
 
 
-
+async def get_emoji(ctx,reaction_id):
+    return ctx.bot.get_emoji(reaction_id)
 
 async def remove_reaction(message, reaction):
     assert message != None, "Missing required discord.Message object"
