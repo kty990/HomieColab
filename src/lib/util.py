@@ -2,6 +2,8 @@ import re
 import requests
 import time
 from validators import url
+import glob
+import os
 
 
 async def DEFAULT_COMMAND_ACTION(ctx):
@@ -16,6 +18,11 @@ def is_url(str):
     except Exception as e:
         print(f"Error processing is_url({str}): {e}")
         return False
+
+def remove_files_by_pattern(directory, pattern):
+    files = glob.glob(os.path.join(directory, pattern))
+    for file in files:
+        os.remove(file)
 
 async def GenerateURL(query):
     print("GenerateURL called.")

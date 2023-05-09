@@ -98,6 +98,9 @@ async def add_reaction_(ctx, message, reaction=None, reaction_id=None):
     await message.add_reaction(final_reaction)
     print("Reaction added!")
 
+async def get_user_by_id(ctx, id):
+    user = await ctx.bot.fetch_user(id)
+    return user
 
 async def get_emoji(ctx,reaction_id):
     return ctx.bot.get_emoji(reaction_id)

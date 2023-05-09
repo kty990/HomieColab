@@ -128,6 +128,8 @@ def unreaction_handle(reaction,user):
         print(e)
 
 async def run(ctx, *args):
+    await discord_integration.send_message(ctx,None,new_embed("Memory","This game is currently in early stages. Please check back later.",0xff0000))
+    return #REMOVE THESE TWO LINES ONCE YOU ARE READY TO RUN THE SCRIPT
     global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK
     if GAME_IN_PROGRESS:
         await discord_integration.send_message(ctx,prompt="Sorry, a game is already in progress!")

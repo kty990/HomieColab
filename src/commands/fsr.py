@@ -106,7 +106,8 @@ prompts = [
 prompts = [x.lower() for x in prompts]
 
 TESTING = True
-description = """Five Second Rule: Uncensored. A game where you must say 3 things about a given category before 5 seconds elapses."""
+description = """Optional arg: Rounds [int]
+Five Second Rule: Uncensored. A game where you must say 3 things about a given category before 5 seconds elapses."""
 
 class Player:
     def __init__(self, user):
@@ -234,7 +235,6 @@ def unreaction_handle(reaction,user):
 
 async def run(ctx, *args):
     global GAME_IN_PROGRESS, STARTED_BY_ID, START_CHECK
-    print(args)
     TARGET_SCORE = 12
     try:
         if args[0].isdigit():

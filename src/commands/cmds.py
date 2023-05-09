@@ -99,7 +99,7 @@ async def run(ctx, *args):
     # print(output)
     avatar_url = f"{str(ctx.author.avatar.url)}"
 
-    e.set_image(url=avatar_url)
+    # e.set_image(url=avatar_url)
     e.set_author(name=f"{ctx.author}", icon_url=f"{avatar_url}")
     e.timestamp = date.now()
     await ctx.send(embed=e)

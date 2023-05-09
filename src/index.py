@@ -68,8 +68,8 @@ async def on_reaction_remove(reaction,user):
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Streaming(name="Game Bot stuff", url="https://www.youtube.com/watch?v=xvFZjo5PgG0&ab_channel=Duran"))
-    await bot.user.edit(username="Homies Game Bot")
+    await bot.change_presence(activity=discord.Streaming(name="Game Bot stuff", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+
     for guild in bot.guilds:
         await guild.me.edit(nick="[-] Game Bot")
 
