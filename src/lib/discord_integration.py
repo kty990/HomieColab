@@ -29,10 +29,10 @@ async def DM_no_response(ctx, user=None, prompt=None, embed=None):
 
 
 
-async def send_message(ctx, prompt=None, embed=None):
+async def send_message(ctx, prompt=None, embed=None, file=None):
     # assert isinstance(embed, discord.Embed) or embed == None, f"Embed must be of type discord.Embed"
     # assert ctx != None, "Missing required CONTEXT object"
-    message = await ctx.send(content=prompt, embed=embed)
+    message = await ctx.send(content=prompt, embed=embed, file=file)
     return message
 
 

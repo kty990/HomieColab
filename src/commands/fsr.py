@@ -2,14 +2,16 @@ import sys
 import os
 import random
 import asyncio
-import copy
-import time
+import discord
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.lib import event
 from src.lib.embed import new_embed
 from src.lib import discord_integration
+
+from src.lib.scoreboard import Scoreboard
+from src.lib import scoreboard
 
 prompts = [
     "You shouldn't do in public",
@@ -339,10 +341,21 @@ async def run(ctx, *args):
 
     # determine the winner
     result = sorted(players, key=lambda x: x.score, reverse=True)
-    if len(result) == 2:
-        result.append("n/a")
-    e = new_embed("Five Second Rule! - Podium",f"🥇 - {result[0]}\n🥈 - {result[1]}\n🥉 - {result[2]}")
-    await discord_integration.send_message(ctx,None,e)
+    e = new_embed("Five Second Rule! - Podium","\u2800")
+
+
+    for i in range(0,len(result),2):
+        s = Scoreboard()
+        scoreboard.scoreboards.append(s)
+        await s.create(args[i],args[i+1])
+        i += 2
+    sb = scoreboard.scoreboards[0]
+    await sb.stack(*scoreboard.scoreboards)
+
+    final_img = discord.File(str(sb.id) + 'stacked_scoreboard.png', filename=f"{str(sb.id)}stacked_scoreboard.png")
+
+    e.set_image(url=f"attachment://{str(sb.id)}stacked_scoreboard.png")
+    await discord_integration.send_message(ctx,None,e,file=final_img)
 
     
     GAME_IN_PROGRESS = False

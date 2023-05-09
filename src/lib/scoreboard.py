@@ -7,14 +7,11 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from src.lib.util import remove_files_by_pattern
-
 scoreboards = []
 
 class Scoreboard:
-    def __init__(self):
-        self.id = str(round(time.time() / 1000,2))
-        print(f"ID: {self.id}")
+    def __init__(self, custom_id_prefix=""):
+        self.id = custom_id_prefix + str(len(scoreboards) + 1)
 
     def draw_rounded_rect(self, draw, x1, x2, y1, y2, radius, color="blue"):
         # Draw the rounded rectangle
@@ -26,10 +23,10 @@ class Scoreboard:
         draw.pieslice([(x2 - radius * 2, y1), (x2, y1 + radius * 2)], 270, 360, fill=color)
 
 
-    async def create(self, team1, team2, score1, score2):
+    async def create(self, team1, score1):
         # Create a blank image
         WIDTH = 800
-        HEIGHT = 200
+        HEIGHT = 100
         image = Image.open("./res/scoreboard.png")
 
         # Specify the font sizes
@@ -53,17 +50,13 @@ class Scoreboard:
                     break
             return ''.join(result)
 
-        team1 = modify_text(team1, WIDTH/2).upper()
-        team2 = modify_text(team2, WIDTH/2).upper()
+        team1 = modify_text(team1, WIDTH/5*2).upper()
         score1 = modify_text(score1, 100).replace("(...)","")
-        score2 = modify_text(score2, 100).replace("(...)","")
 
         PADDING = 35
 
         # Create a drawing context
         draw = ImageDraw.Draw(image)
-
-        
 
         # Determine the positions for team names and scores
         team1_x = PADDING 
@@ -80,12 +73,11 @@ class Scoreboard:
 
         # Draw the team names and scores on the image
         draw.text((team1_x, team1_y), team1, fill=(0, 0, 0), font=team_font)
-        draw.text((team2_x, team2_y), team2, fill=(0, 0, 0), font=team_font)
         draw.text((score1_x, score1_y), str(score1), fill=(0, 0, 0), font=score_font)
-        draw.text((score2_x, score2_y), str(score2), fill=(0, 0, 0), font=score_font)
 
         # Save the image to a file
         image.save(str(self.id) + 'scoreboard.png')
+        image.close()
 
     def get_image(self):
         image = None
@@ -95,5 +87,22 @@ class Scoreboard:
             print(e)
         return image
     
-    def __del__(self):
-        remove_files_by_pattern('./',str(self.id) + 'scoreboard.png')
+    async def stack(self, *args):
+        imgs = []
+        output_w, output_h = 0, 0
+        for sb in args:
+            i = Image.open(str(sb.id) + "scoreboard.png")
+            print(f"{str(sb.id)}: {i.height}")
+            imgs.append(i)
+            if i.width > output_w:
+                output_w = i.width
+            output_h += i.height
+        img = Image.new("RGB", (output_w, output_h))
+        print(f"Final height: {output_h}")
+        curr_h = 0
+        for i in imgs:
+            img.paste(i, (0, curr_h))
+            curr_h += i.height
+            i.close()
+        img.save(str(self.id) + "stacked_scoreboard.png")
+        img.close()

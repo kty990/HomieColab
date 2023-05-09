@@ -43,7 +43,6 @@ for module_name, module in loader.CommandObject.commands.items():
 ######################### EVENTS ############################
 @bot.event
 async def on_command_error(ctx, error):
-    print(error)
     if isinstance(error, commands.CommandNotFound):
         return  # ignore command not found errors
 
