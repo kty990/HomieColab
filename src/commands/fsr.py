@@ -176,8 +176,8 @@ async def GetPlayers(ctx, MAX_PLAYERS):
 
     e = new_embed('Five Second Rule',f"React with 👍 to join the game of five second rule!\nA maximum of {MAX_PLAYERS} players can join! ({len(REACTIONS)}/{MAX_PLAYERS})\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     message = await ctx.send(embed=e)
-    await message.add_reaction("👍")
-    await message.add_reaction("⏯️")
+    await discord_integration.add_reaction_("👍")
+    await discord_integration.add_reaction_("⏯️")
     MESSAGE_ID = message.id
     # Wait for 60 seconds to allow for users to join
     for x in range(TIME_IN_SECONDS*MULTIPLIER):

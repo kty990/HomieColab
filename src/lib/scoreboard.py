@@ -1,13 +1,13 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import discord
-import time
-import math
 import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 scoreboards = []
+
+GRAYSCALE = [(x,x,x) for x in range(0,256)]
 
 class Scoreboard:
     def __init__(self, custom_id_prefix=""):
@@ -23,11 +23,26 @@ class Scoreboard:
         draw.pieslice([(x2 - radius * 2, y1), (x2, y1 + radius * 2)], 270, 360, fill=color)
 
 
-    async def create(self, team1, score1):
+    async def create(self, team1, score1, RGB=(100,99,100,255)):
         # Create a blank image
         WIDTH = 800
         HEIGHT = 100
         image = Image.open("./res/scoreboard.png")
+        image = image.convert("RGBA")
+
+        def change_color(old_color, new_color):
+            if isinstance(old_color,list):
+                for x in range(image.width):
+                    for y in range(image.height):
+                        r,g,b,a = image.getpixel((x,y))
+                        if (r,g,b) in old_color:
+                            image.putpixel((x, y),new_color)
+            else:
+                for x in range(image.width):
+                    for y in range(image.height):
+                        r,g,b,a = image.getpixel((x,y))
+                        if (r,g,b) == old_color:
+                            image.putpixel((x, y),new_color)
 
         # Specify the font sizes
         score_font_size = 40
@@ -74,6 +89,10 @@ class Scoreboard:
         # Draw the team names and scores on the image
         draw.text((team1_x, team1_y), team1, fill=(0, 0, 0), font=team_font)
         draw.text((score1_x, score1_y), str(score1), fill=(0, 0, 0), font=score_font)
+
+        change_color((255,255,255),RGB)
+        change_color(GRAYSCALE,(0,0,0,0))
+        
 
         # Save the image to a file
         image.save(str(self.id) + 'scoreboard.png')

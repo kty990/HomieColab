@@ -209,7 +209,7 @@ class Player:
         }
 
         for reaction in reactions.keys():
-            await message.add_reaction(reaction)
+            await discord_integration.add_reaction_(reaction)
         
         dm_channel = await self.user.create_dm()
         reaction = await discord_integration.wait_for_reaction(ctx, reactions.keys(),self.user,dm_channel)
@@ -454,8 +454,8 @@ async def GetPlayers(ctx, MAX_PLAYERS):
 
     e = new_embed('COUP',f"React with 👍 to join the game of coup!\nA maximum of {MAX_PLAYERS} players can join! ({len(REACTIONS)}/{MAX_PLAYERS})\nYou have **{TIME_IN_SECONDS}** seconds left to react!")
     message = await ctx.send(embed=e)
-    await message.add_reaction("👍")
-    await message.add_reaction("⏯️")
+    await discord_integration.add_reaction_("👍")
+    await discord_integration.add_reaction_("⏯️")
     MESSAGE_ID = message.id
     # Wait for 60 seconds to allow for users to join
     for x in range(TIME_IN_SECONDS*MULTIPLIER):

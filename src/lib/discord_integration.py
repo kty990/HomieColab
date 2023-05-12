@@ -91,12 +91,15 @@ async def add_reaction_(ctx, message, reaction=None, reaction_id=None):
     # assert ctx != None, "Missing required CONTEXT object"
     # assert message != None, "Missing required discord.Message object"
     # assert reaction != None or reaction_id != None, "Requires either reaction or reaction id, both appear to be 'None'"
-    final_reaction = reaction
-    if final_reaction == None:
-        final_reaction = ctx.bot.get_emoji(reaction_id)
-    print("Attempting reaction add")
-    await message.add_reaction(final_reaction)
-    print("Reaction added!")
+    try:
+        final_reaction = reaction
+        if final_reaction == None:
+            final_reaction = ctx.bot.get_emoji(reaction_id)
+        print("Attempting reaction add")
+        await message.add_reaction_(final_reaction)
+        print("Reaction added!")
+    except:
+        pass
 
 async def get_user_by_id(ctx, id):
     user = await ctx.bot.fetch_user(id)
@@ -106,12 +109,12 @@ async def get_emoji(ctx,reaction_id):
     return ctx.bot.get_emoji(reaction_id)
 
 async def remove_reaction(message, reaction):
-    assert message != None, "Missing required discord.Message object"
+    # assert message != None, "Missing required discord.Message object"
     await message.clear_reaction(reaction)
 
 
 
 
 async def edit_message(message, new_content=None, new_embed=None):
-    assert message != None, "Missing required discord.Message object"
+    # assert message != None, "Missing required discord.Message object"
     return await message.edit(content=new_content,embed=new_embed)
